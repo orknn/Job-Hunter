@@ -1,0 +1,55 @@
+name: Weekly Job Digest
+
+on:
+  schedule:
+    # Every Saturday at 09:30 UTC = 11:30 CEST (Central European Summer Time)
+    - cron: '30 9 * * 6'
+  workflow_dispatch:  # Manual trigger for testing
+
+jobs:
+  job-digest:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: 🔍 Fetch jobs from Adzuna
+        env:
+          ADZUNA_APP_ID: ${{ secrets.ADZUNA_APP_ID }}
+          ADZUNA_APP_KEY: ${{ secrets.ADZUNA_APP_KEY }}
+        run: python scripts/fetch_jobs.py
+
+      - name: 🤖 Score jobs with Claude AI
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: python scripts/score_jobs.py
+
+      - name: 📧 Generate email
+        run: python scripts/generate_email.py
+
+      - name: 📬 Send email via Gmail
+        env:
+          GMAIL_USERNAME: ${{ secrets.GMAIL_USERNAME }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          RECIPIENT_EMAIL: ${{ secrets.GMAIL_USERNAME }}
+        run: python scripts/send_email.py
+
+      - name: 📦 Archive results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: job-digest-${{ github.run_number }}
+          path: |
+            data/fetched_jobs.json
+            data/scored_jobs.json
+            data/email_digest.html
+          retention-days: 30
