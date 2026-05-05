@@ -31,11 +31,8 @@ SEARCH_QUERIES = [
 # Location filter
 LOCATION = "Barcelona"
 
-# How many days back to search (weekly = 7 days, but we add buffer)
-DAYS_BACK = 10
-
-# Max results per query
-RESULTS_PER_PAGE = 50
+# Max results per query (increased to get all open roles)
+RESULTS_PER_PAGE = 100
 
 
 def load_target_companies():
@@ -58,7 +55,6 @@ def search_adzuna(query, page=1):
         "what": query,
         "where": LOCATION,
         "content-type": "application/json",
-        "max_days_old": DAYS_BACK,
         "sort_by": "date",
         "page": page,
     }
