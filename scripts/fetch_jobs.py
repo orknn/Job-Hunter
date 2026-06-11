@@ -18,6 +18,7 @@ BASE_URL = "https://api.adzuna.com/v1/api/jobs/es/search"
 
 # Search queries — covers Director, FP&A, CFO, Controller titles
 SEARCH_QUERIES = [
+    # English titles (MNC / English-first postings)
     "Finance Director",
     "Head of FP&A",
     "FP&A Director",
@@ -26,13 +27,21 @@ SEARCH_QUERIES = [
     "Head of Finance",
     "Senior Finance Manager",
     "VP Finance",
+    # Spanish titles (Adzuna ES inventory is mostly Spanish-language)
+    "Director Financiero",
+    "Controller Financiero",
+    "Responsable Financiero",
+    "Director de Finanzas",
 ]
+
+# Only fetch jobs posted within the last N days (weekly digest)
+MAX_DAYS_OLD = 8
 
 # Location filter
 LOCATION = "Barcelona"
 
-# Max results per query (increased to get all open roles)
-RESULTS_PER_PAGE = 100
+# Max results per query — Adzuna API hard limit is 50 per page
+RESULTS_PER_PAGE = 50
 
 
 def load_target_companies():
@@ -54,19 +63,23 @@ def search_adzuna(query, page=1):
         "results_per_page": RESULTS_PER_PAGE,
         "what": query,
         "where": LOCATION,
+        "max_days_old": MAX_DAYS_OLD,
         "content-type": "application/json",
         "sort_by": "date",
-        "page": page,
     }
 
     try:
         response = requests.get(f"{BASE_URL}/{page}", params=params, timeout=30)
         response.raise_for_status()
         data = response.json()
-        return data.get("results", [])
+        return data.get("results", []), None
     except requests.exceptions.RequestException as e:
-        print(f"  ⚠ API error for query '{query}': {e}")
-        return []
+        # Surface the API's own error message — critical for debugging
+        detail = ""
+        if getattr(e, "response", None) is not None:
+            detail = f" | body: {e.response.text[:200]}"
+        print(f"  ⚠ API error for query '{query}': {e}{detail}")
+        return [], str(e)
 
 
 def normalize_company_name(name):
@@ -106,6 +119,61 @@ def match_company(job_company, target_companies):
     return None
 
 
+
+
+# ──────────────────────────────────────────────
+# Language fit classification
+# ──────────────────────────────────────────────
+# Rule: a Spanish-language ad with no English-environment signals almost
+# always targets local Spanish-native candidates → not viable (B1 Spanish).
+# Exception: target-list MNCs and ads with explicit English signals, since
+# recruiters often post English-first roles using Spanish templates.
+
+SPANISH_MARKERS = [
+    " para ", " empresa ", " buscamos ", " experiencia ", " años ",
+    " funciones ", " requisitos ", " conocimientos ", " gestión ",
+    " equipo ", " sector ", " imprescindible ", " valorable ", " puesto ",
+]
+
+ENGLISH_ENV_SIGNALS = [
+    "working language", "english-speaking", "english speaking",
+    "international environment", "entorno internacional",
+    "multinational", "multinacional", "english is", "fluent english",
+    "english fluency", "global team", "emea", "headquarters", "shared service",
+    "ingles nativo", "inglés nativo", "english native",
+]
+
+# Spanish ads explicitly demanding native/perfect Spanish → hard local signal
+SPANISH_NATIVE_SIGNALS = [
+    "español nativo", "castellano nativo", "catalán", "català",
+    "nivel nativo de español",
+]
+
+
+def classify_language_fit(job_entry, is_target_match):
+    """Classify ad language fit. Returns (tag, keep_in_pool)."""
+    text = f"{job_entry.get('title','')} {job_entry.get('description','')}".lower()
+
+    spanish_score = sum(1 for m in SPANISH_MARKERS if m in text)
+    is_spanish_ad = spanish_score >= 2
+
+    if not is_spanish_ad:
+        return "ENGLISH_AD", True
+
+    # Spanish ad demanding native Spanish/Catalan → local role, drop
+    # unless it's a target-list company (let scoring decide with full context)
+    if any(s in text for s in SPANISH_NATIVE_SIGNALS):
+        return "SPANISH_LOCAL_NATIVE_REQ", is_target_match
+
+    if any(s in text for s in ENGLISH_ENV_SIGNALS):
+        return "SPANISH_AD_ENGLISH_SIGNALS", True
+
+    if is_target_match:
+        return "SPANISH_AD_TARGET_MNC", True
+
+    return "SPANISH_LOCAL", False
+
+
 def fetch_all_jobs():
     """Run all search queries and collect matching jobs."""
     target_companies = load_target_companies()
@@ -114,9 +182,12 @@ def fetch_all_jobs():
     all_jobs = {}  # Use dict to deduplicate by job ID
     unmatched_jobs = []  # Jobs that don't match target list but are relevant
 
+    failed_queries = []
     for query in SEARCH_QUERIES:
         print(f"\n🔍 Searching: '{query}' in {LOCATION}...")
-        results = search_adzuna(query)
+        results, error = search_adzuna(query)
+        if error:
+            failed_queries.append(query)
         print(f"   Found {len(results)} results")
 
         for job in results:
@@ -141,6 +212,11 @@ def fetch_all_jobs():
                 "category": job.get("category", {}).get("label", ""),
                 "matched_query": query,
             }
+
+            lang_tag, keep = classify_language_fit(job_entry, matched_target is not None)
+            job_entry["language_fit"] = lang_tag
+            if not keep:
+                continue  # Spanish-local ad → not viable for non-native candidate
 
             if matched_target:
                 job_entry["target_match"] = {
@@ -179,6 +255,14 @@ def fetch_all_jobs():
     print(f"   Matched jobs: {len(matched_list)}")
     print(f"   Unmatched sample: {len(unmatched_list)}")
     print(f"   Saved to: {output_path}")
+
+    # Fail the workflow loudly if every single query errored —
+    # otherwise we silently email a 0-job digest forever.
+    if failed_queries and len(failed_queries) == len(SEARCH_QUERIES):
+        print(f"\n❌ ALL {len(SEARCH_QUERIES)} queries failed. Check API credentials / parameters.")
+        sys.exit(1)
+    elif failed_queries:
+        print(f"\n⚠ {len(failed_queries)} queries failed: {failed_queries}")
 
     return result
 
