@@ -1,7 +1,16 @@
 name: Verify ATS Endpoints
 
 on:
-  workflow_dispatch:  # Manual only — run after changing ATS config
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Mode'
+        required: true
+        default: 'verify'
+        type: choice
+        options:
+          - verify
+          - discover
 
 jobs:
   verify:
@@ -16,8 +25,8 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: 🔬 Verify all ATS endpoints
+      - name: 🔬 Run ATS ${{ inputs.mode }}
         env:
           ADZUNA_APP_ID: dummy
           ADZUNA_APP_KEY: dummy
-        run: python scripts/fetch_ats.py --verify
+        run: python scripts/fetch_ats.py --${{ inputs.mode }}

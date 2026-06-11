@@ -33,6 +33,9 @@ TITLE_KEYWORDS = [
 LOCATION_KEYWORDS = [
     "barcelona", "catalonia", "cataluña", "catalunya", "spain", "españa",
     "espana", "madrid", "remote - emea", "emea remote", "remote, spain",
+    # Catalan metro area — where many target HQs actually sit
+    "sant cugat", "hospitalet", "sant feliu", "cornella", "cornellà",
+    "esplugues", "sant joan despi", "sant joan despí", "el prat", "viladecans",
 ]
 
 # Seniority hint — used only for soft prioritization, not exclusion
@@ -44,45 +47,73 @@ SENIOR_HINTS = ["director", "head", "lead", "senior", "vp", "manager", "chief", 
 # {title, location, url, description, posted}
 # ──────────────────────────────────────────────
 
-def fetch_workday(cfg, search_text="finance"):
-    """Workday CXS public API. Tries candidate (wd, site) combos until one works."""
+def _workday_query(tenant, wd, site, search_text, offset):
+    url = f"https://{tenant}.{wd}.myworkdayjobs.com/wday/cxs/{tenant}/{site}/jobs"
+    r = requests.post(
+        url,
+        json={"appliedFacets": {}, "limit": 20, "offset": offset, "searchText": search_text},
+        headers={**HEADERS, "Content-Type": "application/json"},
+        timeout=TIMEOUT,
+    )
+    if r.status_code != 200:
+        return None
+    return r.json().get("jobPostings", [])
+
+
+def fetch_workday(cfg, **_):
+    """Workday CXS public API. Location goes INTO searchText (Workday matches
+    location text in search) and we paginate — top-20 global relevance alone
+    rarely surfaces Spain postings for an MNC."""
     tenant = cfg["tenant"]
     wd_candidates = cfg.get("wd_candidates", ["wd3", "wd1", "wd5"])
     site_candidates = cfg.get(
         "site_candidates",
         ["Careers", "External", f"{tenant}careers", f"{tenant.capitalize()}_Careers", tenant],
     )
+    search_texts = cfg.get("search_texts", ["finance Spain", "finance Barcelona"])
 
+    # Resolve working (wd, site) combo with a cheap probe
+    resolved = None
     for wd in wd_candidates:
         for site in site_candidates:
-            url = f"https://{tenant}.{wd}.myworkdayjobs.com/wday/cxs/{tenant}/{site}/jobs"
             try:
-                r = requests.post(
-                    url,
-                    json={"appliedFacets": {}, "limit": 20, "offset": 0, "searchText": search_text},
-                    headers={**HEADERS, "Content-Type": "application/json"},
-                    timeout=TIMEOUT,
-                )
-                if r.status_code != 200:
-                    continue
-                data = r.json()
-                postings = data.get("jobPostings", [])
-                # Cache the working combo so subsequent queries skip discovery
-                cfg["_resolved"] = {"wd": wd, "site": site}
-                base = f"https://{tenant}.{wd}.myworkdayjobs.com/en-US/{site}"
-                return [
-                    {
-                        "title": p.get("title", ""),
-                        "location": p.get("locationsText", ""),
-                        "url": base + p.get("externalPath", ""),
-                        "description": p.get("title", ""),  # listing has no body; title only
-                        "posted": p.get("postedOn", ""),
-                    }
-                    for p in postings
-                ]
+                if _workday_query(tenant, wd, site, "finance", 0) is not None:
+                    resolved = (wd, site)
+                    break
             except requests.exceptions.RequestException:
                 continue
-    return None  # signals: endpoint not found
+        if resolved:
+            break
+    if not resolved:
+        return None
+
+    wd, site = resolved
+    cfg["_resolved"] = {"wd": wd, "site": site}
+    base = f"https://{tenant}.{wd}.myworkdayjobs.com/en-US/{site}"
+
+    seen, out = set(), []
+    for st in search_texts:
+        for offset in (0, 20, 40):
+            try:
+                postings = _workday_query(tenant, wd, site, st, offset)
+            except requests.exceptions.RequestException:
+                break
+            if not postings:
+                break
+            for p in postings:
+                path = p.get("externalPath", "")
+                if path in seen:
+                    continue
+                seen.add(path)
+                out.append({
+                    "title": p.get("title", ""),
+                    "location": p.get("locationsText", ""),
+                    "url": base + path,
+                    "description": p.get("title", ""),
+                    "posted": p.get("postedOn", ""),
+                })
+            time.sleep(0.3)
+    return out
 
 
 def fetch_greenhouse(cfg, **_):
@@ -196,8 +227,30 @@ def fetch_microsoft(cfg, **_):
         return None
 
 
+def fetch_ashby(cfg, **_):
+    board = cfg["board"]
+    url = f"https://api.ashbyhq.com/posting-api/job-board/{board}"
+    try:
+        r = requests.get(url, headers=HEADERS, timeout=TIMEOUT)
+        if r.status_code != 200:
+            return None
+        return [
+            {
+                "title": j.get("title", ""),
+                "location": j.get("location", "") or "",
+                "url": j.get("jobUrl", "") or j.get("applyUrl", ""),
+                "description": (j.get("descriptionPlain") or j.get("title") or "")[:2000],
+                "posted": j.get("publishedAt", ""),
+            }
+            for j in r.json().get("jobs", [])
+        ]
+    except requests.exceptions.RequestException:
+        return None
+
+
 ADAPTERS = {
     "workday": fetch_workday,
+    "ashby": fetch_ashby,
     "greenhouse": fetch_greenhouse,
     "lever": fetch_lever,
     "smartrecruiters": fetch_smartrecruiters,
@@ -331,6 +384,9 @@ def run_verify():
         if raw is None:
             failed.append(company["name"])
             print(f"  ❌ {company['name']:35s} {ats['type']} — ENDPOINT FAILED")
+        elif len(raw) == 0:
+            failed.append(company["name"])
+            print(f"  ⚠️ {company['name']:35s} {ats['type']} — 0 postings (config suspect — run discover)")
         else:
             resolved = ats.get("_resolved", "")
             ok.append(company["name"])
@@ -345,8 +401,150 @@ def run_verify():
             print(f"  - {name}")
 
 
+
+
+
+# ──────────────────────────────────────────────
+# Discovery mode — probe ATS platforms for companies with broken configs
+# ──────────────────────────────────────────────
+
+DISCOVER_ALIASES = {
+    "Bayer Iberia": ["bayer", "bayerag"],
+    "Microsoft Spain": [],  # custom API, handled separately
+    "Coty Inc. BCN": ["coty", "cotyinc"],
+    "Grifols": ["grifols", "grifolssa"],
+    "Werfen": ["werfen", "werfenlife"],
+    "Reckitt Iberia": ["reckitt", "rb", "reckittbenckiser"],
+    "TravelPerk": ["travelperk"],
+    "Glovo": ["glovo", "glovoapp", "glovoapp23"],
+    "Wallbox": ["wallbox", "wallboxchargers"],
+    "Zurich Insurance Iberia": ["zurich", "zurichinsurance", "zurichinsurancegroup"],
+    "Seedtag": ["seedtag"],
+    "Holaluz": ["holaluz"],
+    "Genially": ["genially", "geniallyweb"],
+    "Snowflake": ["snowflake", "snowflakecomputing", "snowflakeinc"],
+    "Puig": ["puig", "puigbrands", "Puig", "PuigBrands"],
+    "Cellnex Telecom": ["cellnex", "cellnextelecom", "CellnexTelecom"],
+    "Almirall": ["almirall", "Almirall"],
+    "eDreams ODIGEO": ["edreams", "edreamsodigeo", "eDreamsODIGEO", "odigeo"],
+    "Adevinta": ["adevinta", "Adevinta", "adevintaspain"],
+    "Affinity Petcare": ["affinity", "affinitypetcare", "AffinityPetcare"],
+    "Privalia / Veepee Iberia": ["veepee", "vptech", "privalia", "Veepee", "vpTech"],
+}
+
+WD_SITE_GRID = ["Careers", "External", "Career", "Jobs", "{t}careers", "{T}_Careers",
+                "{t}-ext", "{t}", "External_Careers", "{T}Careers", "{t}_jobs"]
+WD_DC_GRID = ["wd1", "wd2", "wd3", "wd5", "wd10", "wd12"]
+
+
+def _slug_variants(name):
+    base = name.lower().split("/")[0].strip()
+    flat = "".join(ch for ch in base if ch.isalnum())
+    first = base.split()[0]
+    return list(dict.fromkeys([flat, first] + DISCOVER_ALIASES.get(name, [])))
+
+
+def _probe(kind, slug):
+    try:
+        if kind == "greenhouse":
+            r = requests.get(f"https://boards-api.greenhouse.io/v1/boards/{slug}/jobs",
+                             headers=HEADERS, timeout=10)
+            if r.status_code == 200:
+                return len(r.json().get("jobs", []))
+        elif kind == "lever":
+            r = requests.get(f"https://api.lever.co/v0/postings/{slug}?mode=json",
+                             headers=HEADERS, timeout=10)
+            if r.status_code == 200 and isinstance(r.json(), list):
+                return len(r.json())
+        elif kind == "ashby":
+            r = requests.get(f"https://api.ashbyhq.com/posting-api/job-board/{slug}",
+                             headers=HEADERS, timeout=10)
+            if r.status_code == 200:
+                return len(r.json().get("jobs", []))
+        elif kind == "smartrecruiters":
+            r = requests.get(f"https://api.smartrecruiters.com/v1/companies/{slug}/postings?limit=10",
+                             headers=HEADERS, timeout=10)
+            if r.status_code == 200:
+                return r.json().get("totalFound", 0)
+    except (requests.exceptions.RequestException, ValueError):
+        pass
+    return None
+
+
+def run_discover():
+    """For companies whose endpoint failed or returned 0, probe all ATS
+    platforms with name variants and print working configs as JSON."""
+    companies = load_companies()
+    suggestions = {}
+
+    print("🕵️ Discovery mode — probing ATS platforms for broken/empty configs...\n")
+    for company in companies:
+        ats = company.get("ats") or {}
+        if ats.get("type") in ("none",):
+            continue
+        # Re-check current config; skip companies that already work with >0 postings
+        if ats.get("type") in ADAPTERS:
+            raw = ADAPTERS[ats["type"]](dict(ats))
+            if raw:
+                continue
+
+        name = company["name"]
+        print(f"  🔎 {name}")
+        found = []
+        for slug in _slug_variants(name):
+            for kind in ("greenhouse", "lever", "ashby", "smartrecruiters"):
+                n = _probe(kind, slug)
+                if n is not None and n > 0:
+                    found.append((kind, slug, n))
+                    print(f"      ✅ {kind}:{slug} → {n} postings")
+                time.sleep(0.2)
+
+        # Workday grid probe (only if nothing found yet and tenant-ish name)
+        if not found:
+            for tenant in _slug_variants(name)[:2]:
+                for wd in WD_DC_GRID:
+                    for site_t in WD_SITE_GRID:
+                        site = site_t.replace("{t}", tenant).replace("{T}", tenant.capitalize())
+                        try:
+                            res = _workday_query(tenant, wd, site, "finance", 0)
+                        except requests.exceptions.RequestException:
+                            res = None
+                        if res is not None:
+                            found.append(("workday", f"{tenant}|{wd}|{site}", len(res)))
+                            print(f"      ✅ workday: {tenant} {wd} {site} → {len(res)} postings")
+                            break
+                        time.sleep(0.1)
+                    if found:
+                        break
+                if found:
+                    break
+
+        if found:
+            kind, slug, n = found[0]
+            if kind == "workday":
+                tenant, wd, site = slug.split("|")
+                suggestions[name] = {"type": "workday", "tenant": tenant,
+                                     "wd_candidates": [wd], "site_candidates": [site]}
+            elif kind in ("greenhouse", "ashby"):
+                suggestions[name] = {"type": kind, "board": slug}
+            else:
+                suggestions[name] = {"type": kind, "company": slug}
+        else:
+            print(f"      ❌ nothing found")
+
+    print(f"\n{'='*50}")
+    print(f"📋 Discovered configs (paste into target_companies.json 'ats' fields):\n")
+    print(json.dumps(suggestions, indent=2, ensure_ascii=False))
+
+
+if "_discover_hook" not in dir():
+    pass
+
+
 if __name__ == "__main__":
     if "--verify" in sys.argv:
         run_verify()
+    elif "--discover" in sys.argv:
+        run_discover()
     else:
         run_fetch()
