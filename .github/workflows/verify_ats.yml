@@ -1,0 +1,23 @@
+name: Verify ATS Endpoints
+
+on:
+  workflow_dispatch:  # Manual only — run after changing ATS config
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: 🔬 Verify all ATS endpoints
+        env:
+          ADZUNA_APP_ID: dummy
+          ADZUNA_APP_KEY: dummy
+        run: python scripts/fetch_ats.py --verify

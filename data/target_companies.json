@@ -10,7 +10,11 @@
     "working_model": "Hybrid",
     "hqp_sponsor": true,
     "english_first": true,
-    "notes": "BCN HQ Spain, global mobility"
+    "notes": "BCN HQ Spain, global mobility",
+    "ats": {
+      "type": "workday",
+      "tenant": "novartis"
+    }
   },
   {
     "id": 2,
@@ -23,7 +27,16 @@
     "working_model": "Hybrid",
     "hqp_sponsor": true,
     "english_first": true,
-    "notes": "Sant Cugat, 1300+ employees, mature finance org"
+    "notes": "Sant Cugat, 1300+ employees, mature finance org",
+    "ats": {
+      "type": "workday",
+      "tenant": "roche",
+      "site_candidates": [
+        "roche-ext",
+        "Careers",
+        "External"
+      ]
+    }
   },
   {
     "id": 3,
@@ -36,7 +49,15 @@
     "working_model": "Hybrid",
     "hqp_sponsor": true,
     "english_first": true,
-    "notes": "Aggressive growth, English ops"
+    "notes": "Aggressive growth, English ops",
+    "ats": {
+      "type": "workday",
+      "tenant": "astrazeneca",
+      "site_candidates": [
+        "Careers",
+        "External"
+      ]
+    }
   },
   {
     "id": 4,
@@ -49,7 +70,11 @@
     "working_model": "Hybrid",
     "hqp_sponsor": true,
     "english_first": true,
-    "notes": "BCN office, multi-BU complexity"
+    "notes": "BCN office, multi-BU complexity",
+    "ats": {
+      "type": "workday",
+      "tenant": "bayer"
+    }
   },
   {
     "id": 5,
@@ -62,7 +87,16 @@
     "working_model": "Hybrid",
     "hqp_sponsor": true,
     "english_first": true,
-    "notes": "BCN HQ Iberia, ~300 people, English-only"
+    "notes": "BCN HQ Iberia, ~300 people, English-only",
+    "ats": {
+      "type": "workday",
+      "tenant": "amgen",
+      "wd_candidates": [
+        "wd1",
+        "wd3",
+        "wd5"
+      ]
+    }
   },
   {
     "id": 6,
@@ -75,7 +109,10 @@
     "working_model": "Hybrid",
     "hqp_sponsor": true,
     "english_first": true,
-    "notes": "Strong RSU, English-only, FP&A maturity"
+    "notes": "Strong RSU, English-only, FP&A maturity",
+    "ats": {
+      "type": "microsoft"
+    }
   },
   {
     "id": 7,
@@ -88,7 +125,10 @@
     "working_model": "Hybrid",
     "hqp_sponsor": true,
     "english_first": true,
-    "notes": "RSU heavy, scope large; high pressure culture"
+    "notes": "RSU heavy, scope large; high pressure culture",
+    "ats": {
+      "type": "amazon"
+    }
   },
   {
     "id": 8,
@@ -101,7 +141,11 @@
     "working_model": "Hybrid",
     "hqp_sponsor": true,
     "english_first": true,
-    "notes": "English ops, FP&A track, stable culture"
+    "notes": "English ops, FP&A track, stable culture",
+    "ats": {
+      "type": "none",
+      "note": "SuccessFactors (own product) — v2"
+    }
   },
   {
     "id": 9,
@@ -114,7 +158,11 @@
     "working_model": "Hybrid",
     "hqp_sponsor": true,
     "english_first": true,
-    "notes": "IBEX-35, English ops, M&A heavy, public company exposure"
+    "notes": "IBEX-35, English ops, M&A heavy, public company exposure",
+    "ats": {
+      "type": "smartrecruiters",
+      "company": "CellnexTelecom"
+    }
   },
   {
     "id": 10,
@@ -127,7 +175,11 @@
     "working_model": "Hybrid",
     "hqp_sponsor": true,
     "english_first": true,
-    "notes": "New IPO 2024, growing, shares available"
+    "notes": "New IPO 2024, growing, shares available",
+    "ats": {
+      "type": "smartrecruiters",
+      "company": "Puig"
+    }
   },
   {
     "id": 11,
@@ -140,7 +192,11 @@
     "working_model": "Hybrid",
     "hqp_sponsor": true,
     "english_first": true,
-    "notes": "VW Group, big benefits, EV growth; Martorell 30km BCN commute"
+    "notes": "VW Group, big benefits, EV growth; Martorell 30km BCN commute",
+    "ats": {
+      "type": "none",
+      "note": "SuccessFactors — v2"
+    }
   },
   {
     "id": 12,
@@ -153,7 +209,11 @@
     "working_model": "Hybrid",
     "hqp_sponsor": true,
     "english_first": true,
-    "notes": "NYC HQ, English-only. DOWNGRADED to Tier B — comp ceiling lower than benchmarks"
+    "notes": "NYC HQ, English-only. DOWNGRADED to Tier B — comp ceiling lower than benchmarks",
+    "ats": {
+      "type": "workday",
+      "tenant": "coty"
+    }
   },
   {
     "id": 13,
@@ -166,7 +226,11 @@
     "working_model": "Hybrid",
     "hqp_sponsor": true,
     "english_first": true,
-    "notes": "German MNC, stable, sponsorship confirmed"
+    "notes": "German MNC, stable, sponsorship confirmed",
+    "ats": {
+      "type": "none",
+      "note": "SuccessFactors — v2"
+    }
   },
   {
     "id": 14,
@@ -179,7 +243,16 @@
     "working_model": "Hybrid",
     "hqp_sponsor": true,
     "english_first": true,
-    "notes": "Multi-BU, strong Spanish entity"
+    "notes": "Multi-BU, strong Spanish entity",
+    "ats": {
+      "type": "workday",
+      "tenant": "sanofi",
+      "site_candidates": [
+        "SanofiCareers",
+        "Careers",
+        "External"
+      ]
+    }
   },
   {
     "id": 15,
@@ -192,7 +265,11 @@
     "working_model": "Hybrid",
     "hqp_sponsor": true,
     "english_first": true,
-    "notes": "Public company, English commercial finance, Spanish maybe for board"
+    "notes": "Public company, English commercial finance, Spanish maybe for board",
+    "ats": {
+      "type": "smartrecruiters",
+      "company": "Almirall"
+    }
   },
   {
     "id": 16,
@@ -205,7 +282,11 @@
     "working_model": "Hybrid",
     "hqp_sponsor": true,
     "english_first": true,
-    "notes": "Recent restructuring — finance roles may open"
+    "notes": "Recent restructuring — finance roles may open",
+    "ats": {
+      "type": "workday",
+      "tenant": "grifols"
+    }
   },
   {
     "id": 17,
@@ -218,7 +299,11 @@
     "working_model": "Hybrid",
     "hqp_sponsor": true,
     "english_first": false,
-    "notes": "Family + PE, Catalan culture stronger"
+    "notes": "Family + PE, Catalan culture stronger",
+    "ats": {
+      "type": "none",
+      "note": "Custom — v2"
+    }
   },
   {
     "id": 18,
@@ -231,7 +316,11 @@
     "working_model": "Hybrid",
     "hqp_sponsor": true,
     "english_first": true,
-    "notes": "Global ops in English, IVD market leader"
+    "notes": "Global ops in English, IVD market leader",
+    "ats": {
+      "type": "workday",
+      "tenant": "werfen"
+    }
   },
   {
     "id": 19,
@@ -244,7 +333,11 @@
     "working_model": "Hybrid",
     "hqp_sponsor": true,
     "english_first": true,
-    "notes": "English-only, Nestle peer profile"
+    "notes": "English-only, Nestle peer profile",
+    "ats": {
+      "type": "workday",
+      "tenant": "reckitt"
+    }
   },
   {
     "id": 20,
@@ -257,7 +350,11 @@
     "working_model": "Hybrid",
     "hqp_sponsor": true,
     "english_first": true,
-    "notes": "German MNC, stable"
+    "notes": "German MNC, stable",
+    "ats": {
+      "type": "none",
+      "note": "Custom careers site — v2"
+    }
   },
   {
     "id": 21,
@@ -270,7 +367,11 @@
     "working_model": "Hybrid",
     "hqp_sponsor": true,
     "english_first": true,
-    "notes": "$3B valuation, English-only, meaningful equity"
+    "notes": "$3B valuation, English-only, meaningful equity",
+    "ats": {
+      "type": "greenhouse",
+      "board": "travelperk"
+    }
   },
   {
     "id": 22,
@@ -283,7 +384,11 @@
     "working_model": "Hybrid",
     "hqp_sponsor": true,
     "english_first": true,
-    "notes": "Capital efficient unicorn, broad scope"
+    "notes": "Capital efficient unicorn, broad scope",
+    "ats": {
+      "type": "none",
+      "note": "Own ATS product — v2"
+    }
   },
   {
     "id": 23,
@@ -296,7 +401,11 @@
     "working_model": "Hybrid",
     "hqp_sponsor": true,
     "english_first": true,
-    "notes": "Delivery Hero Group bonus + LTI structure, English-only"
+    "notes": "Delivery Hero Group bonus + LTI structure, English-only",
+    "ats": {
+      "type": "greenhouse",
+      "board": "glovo"
+    }
   },
   {
     "id": 24,
@@ -309,7 +418,11 @@
     "working_model": "Hybrid",
     "hqp_sponsor": true,
     "english_first": true,
-    "notes": "Public company, IR exposure possible"
+    "notes": "Public company, IR exposure possible",
+    "ats": {
+      "type": "smartrecruiters",
+      "company": "eDreamsODIGEO"
+    }
   },
   {
     "id": 25,
@@ -322,7 +435,11 @@
     "working_model": "Hybrid",
     "hqp_sponsor": true,
     "english_first": true,
-    "notes": "NYSE listed, restructuring phase — risk + opportunity"
+    "notes": "NYSE listed, restructuring phase — risk + opportunity",
+    "ats": {
+      "type": "greenhouse",
+      "board": "wallbox"
+    }
   },
   {
     "id": 26,
@@ -335,7 +452,11 @@
     "working_model": "Hybrid",
     "hqp_sponsor": true,
     "english_first": true,
-    "notes": "Recently taken private, finance restructuring possible"
+    "notes": "Recently taken private, finance restructuring possible",
+    "ats": {
+      "type": "smartrecruiters",
+      "company": "Adevinta"
+    }
   },
   {
     "id": 27,
@@ -348,7 +469,11 @@
     "working_model": "Hybrid",
     "hqp_sponsor": true,
     "english_first": false,
-    "notes": "Catalan culture stronger; Spanish may be needed"
+    "notes": "Catalan culture stronger; Spanish may be needed",
+    "ats": {
+      "type": "none",
+      "note": "Custom — v2"
+    }
   },
   {
     "id": 28,
@@ -361,7 +486,11 @@
     "working_model": "Hybrid",
     "hqp_sponsor": true,
     "english_first": true,
-    "notes": "English ops, large finance org"
+    "notes": "English ops, large finance org",
+    "ats": {
+      "type": "workday",
+      "tenant": "zurich"
+    }
   },
   {
     "id": 29,
@@ -374,7 +503,11 @@
     "working_model": "Hybrid",
     "hqp_sponsor": true,
     "english_first": true,
-    "notes": "BCN, English-only"
+    "notes": "BCN, English-only",
+    "ats": {
+      "type": "greenhouse",
+      "board": "wallapop"
+    }
   },
   {
     "id": 30,
@@ -387,7 +520,11 @@
     "working_model": "Hybrid",
     "hqp_sponsor": true,
     "english_first": true,
-    "notes": "BCN-Madrid hybrid, growth path to CFO"
+    "notes": "BCN-Madrid hybrid, growth path to CFO",
+    "ats": {
+      "type": "greenhouse",
+      "board": "seedtag"
+    }
   },
   {
     "id": 31,
@@ -400,7 +537,11 @@
     "working_model": "Hybrid",
     "hqp_sponsor": true,
     "english_first": true,
-    "notes": "BCN HQ, struggle period — fix-it role"
+    "notes": "BCN HQ, struggle period — fix-it role",
+    "ats": {
+      "type": "lever",
+      "company": "holaluz"
+    }
   },
   {
     "id": 32,
@@ -413,7 +554,11 @@
     "working_model": "Hybrid",
     "hqp_sponsor": true,
     "english_first": true,
-    "notes": "BCN-Almeria; mostly English"
+    "notes": "BCN-Almeria; mostly English",
+    "ats": {
+      "type": "lever",
+      "company": "genially"
+    }
   },
   {
     "id": 33,
@@ -426,7 +571,11 @@
     "working_model": "Hybrid",
     "hqp_sponsor": true,
     "english_first": false,
-    "notes": "BCN HQ, mid-size, possibly Spanish-leaning"
+    "notes": "BCN HQ, mid-size, possibly Spanish-leaning",
+    "ats": {
+      "type": "smartrecruiters",
+      "company": "AffinityPetcare"
+    }
   },
   {
     "id": 34,
@@ -439,7 +588,11 @@
     "working_model": "Hybrid",
     "hqp_sponsor": true,
     "english_first": true,
-    "notes": "BCN ops, French parent"
+    "notes": "BCN ops, French parent",
+    "ats": {
+      "type": "smartrecruiters",
+      "company": "Veepee"
+    }
   },
   {
     "id": 35,
@@ -452,7 +605,11 @@
     "working_model": "Hybrid",
     "hqp_sponsor": true,
     "english_first": true,
-    "notes": "BCN, Norwegian parent, English"
+    "notes": "BCN, Norwegian parent, English",
+    "ats": {
+      "type": "none",
+      "note": "Custom — v2"
+    }
   },
   {
     "id": 36,
@@ -465,7 +622,11 @@
     "working_model": "Hybrid",
     "hqp_sponsor": true,
     "english_first": false,
-    "notes": "Catalan retail giant, Palau-solita (BCN suburb)"
+    "notes": "Catalan retail giant, Palau-solita (BCN suburb)",
+    "ats": {
+      "type": "none",
+      "note": "Custom — v2"
+    }
   },
   {
     "id": 37,
@@ -478,7 +639,11 @@
     "working_model": "Remote",
     "hqp_sponsor": true,
     "english_first": true,
-    "notes": "Dublin HQ, sponsorship OK"
+    "notes": "Dublin HQ, sponsorship OK",
+    "ats": {
+      "type": "greenhouse",
+      "board": "stripe"
+    }
   },
   {
     "id": 38,
@@ -491,7 +656,11 @@
     "working_model": "Remote",
     "hqp_sponsor": true,
     "english_first": true,
-    "notes": "Dublin HQ, sponsorship OK"
+    "notes": "Dublin HQ, sponsorship OK",
+    "ats": {
+      "type": "greenhouse",
+      "board": "hubspot"
+    }
   },
   {
     "id": 39,
@@ -504,7 +673,16 @@
     "working_model": "Remote",
     "hqp_sponsor": true,
     "english_first": true,
-    "notes": "Sponsorship OK"
+    "notes": "Sponsorship OK",
+    "ats": {
+      "type": "workday",
+      "tenant": "snowflake",
+      "wd_candidates": [
+        "wd5",
+        "wd1",
+        "wd3"
+      ]
+    }
   },
   {
     "id": 40,
@@ -517,7 +695,11 @@
     "working_model": "Remote",
     "hqp_sponsor": true,
     "english_first": true,
-    "notes": "Sponsorship OK"
+    "notes": "Sponsorship OK",
+    "ats": {
+      "type": "greenhouse",
+      "board": "cloudflare"
+    }
   },
   {
     "id": 41,
@@ -530,7 +712,11 @@
     "working_model": "Remote",
     "hqp_sponsor": true,
     "english_first": true,
-    "notes": "Sponsorship OK"
+    "notes": "Sponsorship OK",
+    "ats": {
+      "type": "lever",
+      "company": "atlassian"
+    }
   },
   {
     "id": 42,
@@ -543,6 +729,10 @@
     "working_model": "Remote",
     "hqp_sponsor": true,
     "english_first": true,
-    "notes": "Stockholm HQ, remote, sponsorship OK"
+    "notes": "Stockholm HQ, remote, sponsorship OK",
+    "ats": {
+      "type": "lever",
+      "company": "spotify"
+    }
   }
 ]
