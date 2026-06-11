@@ -13,7 +13,13 @@
     "notes": "BCN HQ Spain, global mobility",
     "ats": {
       "type": "workday",
-      "tenant": "novartis"
+      "tenant": "novartis",
+      "wd_candidates": [
+        "wd3"
+      ],
+      "site_candidates": [
+        "Novartis_Careers"
+      ]
     }
   },
   {
@@ -31,10 +37,11 @@
     "ats": {
       "type": "workday",
       "tenant": "roche",
+      "wd_candidates": [
+        "wd3"
+      ],
       "site_candidates": [
-        "roche-ext",
-        "Careers",
-        "External"
+        "roche-ext"
       ]
     }
   },
@@ -53,9 +60,11 @@
     "ats": {
       "type": "workday",
       "tenant": "astrazeneca",
+      "wd_candidates": [
+        "wd3"
+      ],
       "site_candidates": [
-        "Careers",
-        "External"
+        "Careers"
       ]
     }
   },
@@ -72,8 +81,8 @@
     "english_first": true,
     "notes": "BCN office, multi-BU complexity",
     "ats": {
-      "type": "workday",
-      "tenant": "bayer"
+      "type": "none",
+      "note": "SuccessFactors — no public JSON API, v2"
     }
   },
   {
@@ -92,9 +101,10 @@
       "type": "workday",
       "tenant": "amgen",
       "wd_candidates": [
-        "wd1",
-        "wd3",
-        "wd5"
+        "wd1"
+      ],
+      "site_candidates": [
+        "Careers"
       ]
     }
   },
@@ -111,7 +121,8 @@
     "english_first": true,
     "notes": "Strong RSU, English-only, FP&A maturity",
     "ats": {
-      "type": "microsoft"
+      "type": "none",
+      "note": "Careers API blocked/changed — revisit adapter in v2"
     }
   },
   {
@@ -160,8 +171,8 @@
     "english_first": true,
     "notes": "IBEX-35, English ops, M&A heavy, public company exposure",
     "ats": {
-      "type": "smartrecruiters",
-      "company": "CellnexTelecom"
+      "type": "none",
+      "note": "SuccessFactors — v2"
     }
   },
   {
@@ -177,8 +188,8 @@
     "english_first": true,
     "notes": "New IPO 2024, growing, shares available",
     "ats": {
-      "type": "smartrecruiters",
-      "company": "Puig"
+      "type": "none",
+      "note": "SuccessFactors — v2"
     }
   },
   {
@@ -200,23 +211,6 @@
   },
   {
     "id": 12,
-    "name": "Coty Inc. BCN",
-    "sector": "FMCG/Beauty",
-    "tier": "B",
-    "target_role": "Finance Director EMEA / Brand",
-    "tc_min": 80000,
-    "tc_max": 90000,
-    "working_model": "Hybrid",
-    "hqp_sponsor": true,
-    "english_first": true,
-    "notes": "NYC HQ, English-only. DOWNGRADED to Tier B — comp ceiling lower than benchmarks",
-    "ats": {
-      "type": "workday",
-      "tenant": "coty"
-    }
-  },
-  {
-    "id": 13,
     "name": "Boehringer Ingelheim Iberia",
     "sector": "Pharma",
     "tier": "A",
@@ -233,7 +227,7 @@
     }
   },
   {
-    "id": 14,
+    "id": 13,
     "name": "Sanofi Iberia",
     "sector": "Pharma",
     "tier": "A",
@@ -247,15 +241,16 @@
     "ats": {
       "type": "workday",
       "tenant": "sanofi",
+      "wd_candidates": [
+        "wd3"
+      ],
       "site_candidates": [
-        "SanofiCareers",
-        "Careers",
-        "External"
+        "SanofiCareers"
       ]
     }
   },
   {
-    "id": 15,
+    "id": 14,
     "name": "Almirall",
     "sector": "Catalan Pharma",
     "tier": "B",
@@ -267,12 +262,18 @@
     "english_first": true,
     "notes": "Public company, English commercial finance, Spanish maybe for board",
     "ats": {
-      "type": "smartrecruiters",
-      "company": "Almirall"
+      "type": "workday",
+      "tenant": "almirall",
+      "wd_candidates": [
+        "wd3"
+      ],
+      "site_candidates": [
+        "External"
+      ]
     }
   },
   {
-    "id": 16,
+    "id": 15,
     "name": "Grifols",
     "sector": "Pharma/Plasma",
     "tier": "B",
@@ -284,29 +285,12 @@
     "english_first": true,
     "notes": "Recent restructuring — finance roles may open",
     "ats": {
-      "type": "workday",
-      "tenant": "grifols"
-    }
-  },
-  {
-    "id": 17,
-    "name": "Esteve Pharmaceuticals",
-    "sector": "Catalan Pharma",
-    "tier": "B",
-    "target_role": "Head of FP&A",
-    "tc_min": 100000,
-    "tc_max": 140000,
-    "working_model": "Hybrid",
-    "hqp_sponsor": true,
-    "english_first": false,
-    "notes": "Family + PE, Catalan culture stronger",
-    "ats": {
       "type": "none",
-      "note": "Custom — v2"
+      "note": "Custom careers site — v2"
     }
   },
   {
-    "id": 18,
+    "id": 16,
     "name": "Werfen",
     "sector": "Catalan Diagnostics",
     "tier": "B",
@@ -318,12 +302,12 @@
     "english_first": true,
     "notes": "Global ops in English, IVD market leader",
     "ats": {
-      "type": "workday",
-      "tenant": "werfen"
+      "type": "none",
+      "note": "SuccessFactors — v2"
     }
   },
   {
-    "id": 19,
+    "id": 17,
     "name": "Reckitt Iberia",
     "sector": "FMCG",
     "tier": "B",
@@ -335,12 +319,12 @@
     "english_first": true,
     "notes": "English-only, Nestle peer profile",
     "ats": {
-      "type": "workday",
-      "tenant": "reckitt"
+      "type": "none",
+      "note": "Custom (Phenom) careers site — v2"
     }
   },
   {
-    "id": 20,
+    "id": 18,
     "name": "Henkel Iberia",
     "sector": "FMCG/Adhesives",
     "tier": "B",
@@ -357,7 +341,7 @@
     }
   },
   {
-    "id": 21,
+    "id": 19,
     "name": "TravelPerk",
     "sector": "Travel SaaS",
     "tier": "B",
@@ -369,12 +353,12 @@
     "english_first": true,
     "notes": "$3B valuation, English-only, meaningful equity",
     "ats": {
-      "type": "greenhouse",
-      "board": "travelperk"
+      "type": "none",
+      "note": "Likely Workable — needs workable adapter, v2"
     }
   },
   {
-    "id": 22,
+    "id": 20,
     "name": "Factorial",
     "sector": "HR SaaS",
     "tier": "B",
@@ -391,7 +375,7 @@
     }
   },
   {
-    "id": 23,
+    "id": 21,
     "name": "Glovo",
     "sector": "Delivery",
     "tier": "B",
@@ -403,12 +387,12 @@
     "english_first": true,
     "notes": "Delivery Hero Group bonus + LTI structure, English-only",
     "ats": {
-      "type": "greenhouse",
-      "board": "glovo"
+      "type": "none",
+      "note": "Custom careers portal — v2"
     }
   },
   {
-    "id": 24,
+    "id": 22,
     "name": "eDreams ODIGEO",
     "sector": "Travel",
     "tier": "B",
@@ -420,12 +404,12 @@
     "english_first": true,
     "notes": "Public company, IR exposure possible",
     "ats": {
-      "type": "smartrecruiters",
-      "company": "eDreamsODIGEO"
+      "type": "none",
+      "note": "Custom careers — v2"
     }
   },
   {
-    "id": 25,
+    "id": 23,
     "name": "Wallbox",
     "sector": "EV Charging",
     "tier": "B",
@@ -437,12 +421,12 @@
     "english_first": true,
     "notes": "NYSE listed, restructuring phase — risk + opportunity",
     "ats": {
-      "type": "greenhouse",
-      "board": "wallbox"
+      "type": "none",
+      "note": "Custom/SF careers — v2"
     }
   },
   {
-    "id": 26,
+    "id": 24,
     "name": "Adevinta",
     "sector": "Marketplaces",
     "tier": "B",
@@ -454,29 +438,12 @@
     "english_first": true,
     "notes": "Recently taken private, finance restructuring possible",
     "ats": {
-      "type": "smartrecruiters",
-      "company": "Adevinta"
-    }
-  },
-  {
-    "id": 27,
-    "name": "Damm",
-    "sector": "FMCG/Beer",
-    "tier": "B",
-    "target_role": "Head of FP&A",
-    "tc_min": 100000,
-    "tc_max": 140000,
-    "working_model": "Hybrid",
-    "hqp_sponsor": true,
-    "english_first": false,
-    "notes": "Catalan culture stronger; Spanish may be needed",
-    "ats": {
       "type": "none",
-      "note": "Custom — v2"
+      "note": "SmartRecruiters ID not found — v2"
     }
   },
   {
-    "id": 28,
+    "id": 25,
     "name": "Zurich Insurance Iberia",
     "sector": "Insurance",
     "tier": "B",
@@ -488,12 +455,12 @@
     "english_first": true,
     "notes": "English ops, large finance org",
     "ats": {
-      "type": "workday",
-      "tenant": "zurich"
+      "type": "none",
+      "note": "Custom/Oracle careers — v2"
     }
   },
   {
-    "id": 29,
+    "id": 26,
     "name": "Wallapop",
     "sector": "Marketplace",
     "tier": "C",
@@ -510,7 +477,7 @@
     }
   },
   {
-    "id": 30,
+    "id": 27,
     "name": "Seedtag",
     "sector": "Adtech",
     "tier": "C",
@@ -522,46 +489,12 @@
     "english_first": true,
     "notes": "BCN-Madrid hybrid, growth path to CFO",
     "ats": {
-      "type": "greenhouse",
-      "board": "seedtag"
+      "type": "none",
+      "note": "Likely Teamtailor — v2"
     }
   },
   {
-    "id": 31,
-    "name": "Holaluz",
-    "sector": "Energy",
-    "tier": "C",
-    "target_role": "Head of FP&A",
-    "tc_min": 100000,
-    "tc_max": 130000,
-    "working_model": "Hybrid",
-    "hqp_sponsor": true,
-    "english_first": true,
-    "notes": "BCN HQ, struggle period — fix-it role",
-    "ats": {
-      "type": "lever",
-      "company": "holaluz"
-    }
-  },
-  {
-    "id": 32,
-    "name": "Genially",
-    "sector": "Edtech",
-    "tier": "C",
-    "target_role": "Head of Finance",
-    "tc_min": 90000,
-    "tc_max": 130000,
-    "working_model": "Hybrid",
-    "hqp_sponsor": true,
-    "english_first": true,
-    "notes": "BCN-Almeria; mostly English",
-    "ats": {
-      "type": "lever",
-      "company": "genially"
-    }
-  },
-  {
-    "id": 33,
+    "id": 28,
     "name": "Affinity Petcare",
     "sector": "FMCG/Petfood",
     "tier": "C",
@@ -573,12 +506,12 @@
     "english_first": false,
     "notes": "BCN HQ, mid-size, possibly Spanish-leaning",
     "ats": {
-      "type": "smartrecruiters",
-      "company": "AffinityPetcare"
+      "type": "greenhouse",
+      "board": "affinity"
     }
   },
   {
-    "id": 34,
+    "id": 29,
     "name": "Privalia / Veepee Iberia",
     "sector": "E-commerce",
     "tier": "C",
@@ -590,46 +523,12 @@
     "english_first": true,
     "notes": "BCN ops, French parent",
     "ats": {
-      "type": "smartrecruiters",
-      "company": "Veepee"
+      "type": "lever",
+      "company": "veepee"
     }
   },
   {
-    "id": 35,
-    "name": "Schibsted Iberia",
-    "sector": "Marketplaces",
-    "tier": "C",
-    "target_role": "Head of FP&A",
-    "tc_min": 100000,
-    "tc_max": 140000,
-    "working_model": "Hybrid",
-    "hqp_sponsor": true,
-    "english_first": true,
-    "notes": "BCN, Norwegian parent, English",
-    "ats": {
-      "type": "none",
-      "note": "Custom — v2"
-    }
-  },
-  {
-    "id": 36,
-    "name": "Mango",
-    "sector": "Retail",
-    "tier": "C",
-    "target_role": "Head of FP&A / FD",
-    "tc_min": 100000,
-    "tc_max": 140000,
-    "working_model": "Hybrid",
-    "hqp_sponsor": true,
-    "english_first": false,
-    "notes": "Catalan retail giant, Palau-solita (BCN suburb)",
-    "ats": {
-      "type": "none",
-      "note": "Custom — v2"
-    }
-  },
-  {
-    "id": 37,
+    "id": 30,
     "name": "Stripe",
     "sector": "Fintech",
     "tier": "Hidden",
@@ -646,46 +545,7 @@
     }
   },
   {
-    "id": 38,
-    "name": "HubSpot",
-    "sector": "SaaS",
-    "tier": "Hidden",
-    "target_role": "Senior Finance Manager / FD EMEA",
-    "tc_min": 120000,
-    "tc_max": 180000,
-    "working_model": "Remote",
-    "hqp_sponsor": true,
-    "english_first": true,
-    "notes": "Dublin HQ, sponsorship OK",
-    "ats": {
-      "type": "greenhouse",
-      "board": "hubspot"
-    }
-  },
-  {
-    "id": 39,
-    "name": "Snowflake",
-    "sector": "Cloud Data",
-    "tier": "Hidden",
-    "target_role": "Finance Director EMEA",
-    "tc_min": 130000,
-    "tc_max": 180000,
-    "working_model": "Remote",
-    "hqp_sponsor": true,
-    "english_first": true,
-    "notes": "Sponsorship OK",
-    "ats": {
-      "type": "workday",
-      "tenant": "snowflake",
-      "wd_candidates": [
-        "wd5",
-        "wd1",
-        "wd3"
-      ]
-    }
-  },
-  {
-    "id": 40,
+    "id": 31,
     "name": "Cloudflare",
     "sector": "Cloud/Security",
     "tier": "Hidden",
@@ -702,24 +562,7 @@
     }
   },
   {
-    "id": 41,
-    "name": "Atlassian",
-    "sector": "Enterprise SaaS",
-    "tier": "Hidden",
-    "target_role": "Finance Manager / Director EMEA",
-    "tc_min": 120000,
-    "tc_max": 170000,
-    "working_model": "Remote",
-    "hqp_sponsor": true,
-    "english_first": true,
-    "notes": "Sponsorship OK",
-    "ats": {
-      "type": "lever",
-      "company": "atlassian"
-    }
-  },
-  {
-    "id": 42,
+    "id": 32,
     "name": "Spotify",
     "sector": "Music Tech",
     "tier": "Hidden",
@@ -733,6 +576,183 @@
     "ats": {
       "type": "lever",
       "company": "spotify"
+    }
+  },
+  {
+    "id": 33,
+    "name": "HP Inc.",
+    "sector": "Tech/Hardware",
+    "tier": "A",
+    "target_role": "Finance Director EMEA / Head of FP&A",
+    "tc_min": 110000,
+    "tc_max": 150000,
+    "working_model": "Hybrid",
+    "hqp_sponsor": true,
+    "english_first": true,
+    "notes": "Sant Cugat campus — HP's largest site in Europe, EMEA finance functions",
+    "ats": {
+      "type": "todo"
+    }
+  },
+  {
+    "id": 34,
+    "name": "Danone Iberia",
+    "sector": "FMCG",
+    "tier": "A",
+    "target_role": "Finance Director / Head of Controlling",
+    "tc_min": 110000,
+    "tc_max": 150000,
+    "working_model": "Hybrid",
+    "hqp_sponsor": true,
+    "english_first": true,
+    "notes": "BCN HQ Spain — direct FMCG match with Nestlé background",
+    "ats": {
+      "type": "todo"
+    }
+  },
+  {
+    "id": 35,
+    "name": "Schneider Electric",
+    "sector": "Industrial",
+    "tier": "A",
+    "target_role": "Finance Director / FP&A Director",
+    "tc_min": 110000,
+    "tc_max": 150000,
+    "working_model": "Hybrid",
+    "hqp_sponsor": true,
+    "english_first": true,
+    "notes": "BCN international hub. EX-EMPLOYER: alumni network + Project of the Year track record",
+    "ats": {
+      "type": "todo"
+    }
+  },
+  {
+    "id": 36,
+    "name": "Galderma",
+    "sector": "Pharma/Consumer Health",
+    "tier": "A",
+    "target_role": "Head of FP&A / Finance Director",
+    "tc_min": 100000,
+    "tc_max": 140000,
+    "working_model": "Hybrid",
+    "hqp_sponsor": true,
+    "english_first": true,
+    "notes": "BCN global capability center incl. finance — verify scope via discover",
+    "ats": {
+      "type": "todo"
+    }
+  },
+  {
+    "id": 37,
+    "name": "PepsiCo Iberia",
+    "sector": "FMCG",
+    "tier": "B",
+    "target_role": "Finance Director / Senior Finance Manager",
+    "tc_min": 90000,
+    "tc_max": 120000,
+    "working_model": "Hybrid",
+    "hqp_sponsor": true,
+    "english_first": true,
+    "notes": "BCN offices; SSC in Poland so senior commercial finance only",
+    "ats": {
+      "type": "todo"
+    }
+  },
+  {
+    "id": 38,
+    "name": "Vueling (IAG)",
+    "sector": "Aviation",
+    "tier": "B",
+    "target_role": "Head of FP&A / Finance Director",
+    "tc_min": 90000,
+    "tc_max": 125000,
+    "working_model": "Hybrid",
+    "hqp_sponsor": true,
+    "english_first": true,
+    "notes": "Viladecans HQ, IAG group = English reporting line",
+    "ats": {
+      "type": "todo"
+    }
+  },
+  {
+    "id": 39,
+    "name": "Fluidra",
+    "sector": "Industrial",
+    "tier": "B",
+    "target_role": "Corporate Finance Director / Head of FP&A",
+    "tc_min": 90000,
+    "tc_max": 125000,
+    "working_model": "Hybrid",
+    "hqp_sponsor": true,
+    "english_first": true,
+    "notes": "Sabadell HQ, IBEX-35 global — partially English-first",
+    "ats": {
+      "type": "todo"
+    }
+  },
+  {
+    "id": 40,
+    "name": "Ferrer",
+    "sector": "Pharma",
+    "tier": "B",
+    "target_role": "Finance Director / Head of Controlling",
+    "tc_min": 85000,
+    "tc_max": 115000,
+    "working_model": "Hybrid",
+    "hqp_sponsor": true,
+    "english_first": true,
+    "notes": "BCN pharma, internationalizing, B-Corp",
+    "ats": {
+      "type": "todo"
+    }
+  },
+  {
+    "id": 41,
+    "name": "ISDIN",
+    "sector": "Consumer Health",
+    "tier": "B",
+    "target_role": "Finance Director / Head of FP&A",
+    "tc_min": 80000,
+    "tc_max": 110000,
+    "working_model": "Hybrid",
+    "hqp_sponsor": true,
+    "english_first": true,
+    "notes": "BCN HQ, strong global brand growth",
+    "ats": {
+      "type": "todo"
+    }
+  },
+  {
+    "id": 42,
+    "name": "Typeform",
+    "sector": "Tech/SaaS",
+    "tier": "Hidden",
+    "target_role": "VP Finance / Head of FP&A",
+    "tc_min": 100000,
+    "tc_max": 140000,
+    "working_model": "Hybrid",
+    "hqp_sponsor": true,
+    "english_first": true,
+    "notes": "BCN-born scaleup with full CFO org",
+    "ats": {
+      "type": "greenhouse",
+      "board": "typeform"
+    }
+  },
+  {
+    "id": 43,
+    "name": "TheFork (Tripadvisor)",
+    "sector": "Tech/Marketplace",
+    "tier": "Hidden",
+    "target_role": "Finance Director / Head of FP&A",
+    "tc_min": 90000,
+    "tc_max": 125000,
+    "working_model": "Hybrid",
+    "hqp_sponsor": true,
+    "english_first": true,
+    "notes": "BCN HQ, Tripadvisor group",
+    "ats": {
+      "type": "todo"
     }
   }
 ]

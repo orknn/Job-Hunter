@@ -430,6 +430,18 @@ DISCOVER_ALIASES = {
     "Adevinta": ["adevinta", "Adevinta", "adevintaspain"],
     "Affinity Petcare": ["affinity", "affinitypetcare", "AffinityPetcare"],
     "Privalia / Veepee Iberia": ["veepee", "vptech", "privalia", "Veepee", "vpTech"],
+    # Revision adds (June 2026)
+    "HP Inc.": ["hp", "hpinc", "hp1"],
+    "Danone Iberia": ["danone"],
+    "Schneider Electric": ["schneiderelectric", "schneider", "se"],
+    "Galderma": ["galderma"],
+    "PepsiCo Iberia": ["pepsico"],
+    "Vueling (IAG)": ["vueling", "iairgroup", "iag", "InternationalAirlinesGroup"],
+    "Fluidra": ["fluidra"],
+    "Ferrer": ["ferrer", "ferrerinternacional", "FerrerInternacional"],
+    "ISDIN": ["isdin", "Isdin"],
+    "Typeform": ["typeform"],
+    "TheFork (Tripadvisor)": ["thefork", "lafourchette", "tripadvisor"],
 }
 
 WD_SITE_GRID = ["Careers", "External", "Career", "Jobs", "{t}careers", "{T}_Careers",
