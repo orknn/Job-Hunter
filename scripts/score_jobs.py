@@ -40,6 +40,10 @@ SCORING_PROMPT = """You are an expert career advisor evaluating job listings for
 10. **Side Hustle Compatibility** — A: explicitly OK, B: standard policy, C: unclear, D: strict moonlighting ban
 
 ## Special Rules
+- **Language rule (critical):** Each job has a "language_fit" tag. The candidate has B1 Spanish only — he CANNOT work in a Spanish-primary environment.
+  - "SPANISH_LOCAL" or "SPANISH_LOCAL_NATIVE_REQ": score English-First Ops = D and apply_priority = SKIP, regardless of other dimensions.
+  - "SPANISH_AD_TARGET_MNC" or "SPANISH_AD_ENGLISH_SIGNALS": evaluate carefully — recruiters often post English-first MNC roles in Spanish. If the description demands high Spanish proficiency for the role itself (not just the ad language), score English-First Ops = D and SKIP.
+  - A Spanish ad asking for "nivel alto de inglés" usually means a Spanish-primary team wanting English as a secondary skill → that is a C at best for this candidate.
 - **Coty:** Always cap at Tier B, TC ceiling €80-90k (despite being a global MNC)
 - If the job posting is clearly NOT a finance/FP&A/controller/CFO role, score it "IRRELEVANT" and skip
 
@@ -84,6 +88,7 @@ def score_batch(client, jobs):
             "salary_min": job.get("salary_min"),
             "salary_max": job.get("salary_max"),
             "target_match": job.get("target_match"),
+            "language_fit": job.get("language_fit", "UNKNOWN"),
         }
         jobs_summary.append(summary)
 
