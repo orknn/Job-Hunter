@@ -4,6 +4,7 @@ Hedef şirket listesiyle eşleştirir ve JSON olarak kaydeder.
 """
 
 import os
+import re
 import sys
 import json
 import requests
@@ -42,6 +43,22 @@ LOCATION = "Barcelona"
 
 # Max results per query — Adzuna API hard limit is 50 per page
 RESULTS_PER_PAGE = 50
+
+# Intern / junior pre-screen — drop these titles before they ever reach scoring.
+# Word-boundary match so "intern" never swallows "International"/"Internal" finance roles.
+EXCLUDED_TITLE_KEYWORDS = [
+    "intern", "internship", "prácticas", "practicas", "becario", "becaria",
+    "trainee", "working student", "graduate program", "apprentice",
+]
+_EXCLUDED_TITLE_RE = re.compile(
+    r"\b(" + "|".join(re.escape(k) for k in EXCLUDED_TITLE_KEYWORDS) + r")\b",
+    re.IGNORECASE,
+)
+
+
+def is_excluded_title(title):
+    """True if the title is an intern/junior/trainee role we never want to surface."""
+    return bool(_EXCLUDED_TITLE_RE.search(title or ""))
 
 
 def load_target_companies():
@@ -181,6 +198,7 @@ def fetch_all_jobs():
 
     all_jobs = {}  # Use dict to deduplicate by job ID
     unmatched_jobs = []  # Jobs that don't match target list but are relevant
+    seen_pairs = set()  # normalized (title, company) — kills Adzuna's same-job-many-ids dupes
 
     failed_queries = []
     for query in SEARCH_QUERIES:
@@ -195,17 +213,30 @@ def fetch_all_jobs():
             if job_id in all_jobs:
                 continue  # Skip duplicates
 
+            title = job.get("title", "")
             company_name = job.get("company", {}).get("display_name", "Unknown")
+
+            # Intern / junior pre-screen — drop before scoring spend
+            if is_excluded_title(title):
+                continue
+
+            # Normalized pair dedupe (in addition to id-based) — Adzuna reposts
+            # the same role under different ids, e.g. duplicate "Corporate Controller".
+            pair = (title.lower().strip(), company_name.lower().strip())
+            if pair in seen_pairs:
+                continue
+
             matched_target = match_company(company_name, target_companies)
 
             job_entry = {
                 "id": str(job_id),
-                "title": job.get("title", ""),
+                "title": title,
                 "company": company_name,
                 "location": job.get("location", {}).get("display_name", "Barcelona"),
                 "description": job.get("description", ""),
                 "salary_min": job.get("salary_min"),
                 "salary_max": job.get("salary_max"),
+                "salary_is_predicted": job.get("salary_is_predicted"),
                 "url": job.get("redirect_url", ""),
                 "created": job.get("created", ""),
                 "contract_type": job.get("contract_type", ""),
@@ -218,6 +249,7 @@ def fetch_all_jobs():
             if not keep:
                 continue  # Spanish-local ad → not viable for non-native candidate
 
+            seen_pairs.add(pair)
             if matched_target:
                 job_entry["target_match"] = {
                     "name": matched_target["name"],

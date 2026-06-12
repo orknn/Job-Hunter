@@ -45,6 +45,8 @@ SCORING_PROMPT = """You are an expert career advisor evaluating job listings for
   - "SPANISH_AD_TARGET_MNC" or "SPANISH_AD_ENGLISH_SIGNALS": evaluate carefully — recruiters often post English-first MNC roles in Spanish. If the description demands high Spanish proficiency for the role itself (not just the ad language), score English-First Ops = D and SKIP.
   - A Spanish ad asking for "nivel alto de inglés" usually means a Spanish-primary team wanting English as a secondary skill → that is a C at best for this candidate.
 - **Coty:** Always cap at Tier B, TC ceiling €80-90k (despite being a global MNC)
+- **Location hard rule:** If the job location is NOT in Spain and NOT explicitly remote-from-Europe/EMEA, the overall_score is capped at C and apply_priority MUST be SKIP or WATCH — NEVER "APPLY NOW". US/India/Canada/UK-office-only roles cannot be A or B regardless of other merits.
+- **HQP note:** HQP is a Spanish residence permit. For non-Spain roles, the visa dimension should reflect that HQP is irrelevant — do not output "HQP Risk: LOW" for roles outside Spain.
 - If the job posting is clearly NOT a finance/FP&A/controller/CFO role, score it "IRRELEVANT" and skip
 
 ## Your Task
@@ -169,13 +171,34 @@ def score_all_jobs():
     # Merge scored data back with original job info
     jobs_by_id = {j["id"]: j for j in all_jobs}
     enriched = []
+    dropped_unmatched = 0
     for score in relevant:
         job_id = str(score.get("job_id", ""))
-        original = jobs_by_id.get(job_id, {})
+        original = jobs_by_id.get(job_id)
+        # Claude occasionally returns a job_id that matches no original record
+        # (truncation, hallucinated id). Drop it rather than emit a blank
+        # "Unknown / no title" card into the digest.
+        if original is None:
+            dropped_unmatched += 1
+            continue
+
+        # Salary provenance — keep the scoring tc_estimate as Claude's guess, but
+        # tag where the headline number actually comes from so the email can be honest.
+        if str(original.get("salary_is_predicted") or "") == "1":
+            salary_source = "adzuna_predicted"
+        elif original.get("salary_min") or original.get("salary_max"):
+            salary_source = "posting"
+        else:
+            salary_source = "claude_estimate"
+
         enriched.append({
             **original,
+            "salary_source": salary_source,
             "scoring": score,
         })
+
+    if dropped_unmatched:
+        print(f"⚠ Dropped {dropped_unmatched} score(s) with no matching job record (would have rendered as 'Unknown').")
 
     result = {
         "score_date": data.get("fetch_date", ""),

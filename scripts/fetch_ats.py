@@ -16,9 +16,9 @@ import time
 import requests
 from datetime import datetime
 
-# Reuse language classification from the Adzuna fetcher
+# Reuse language classification + intern pre-screen from the Adzuna fetcher
 sys.path.insert(0, os.path.dirname(__file__))
-from fetch_jobs import classify_language_fit  # noqa: E402
+from fetch_jobs import classify_language_fit, is_excluded_title  # noqa: E402
 
 HEADERS = {"User-Agent": "Mozilla/5.0 (Job-Hunter weekly digest; personal use)"}
 TIMEOUT = 20
@@ -274,6 +274,28 @@ def is_target_location(location):
     return any(k in loc for k in LOCATION_KEYWORDS)
 
 
+# Remote roles only pass if anchored to Europe/EMEA/Spain — keeps "Remote - US"
+# and "Remote - India" out of a Barcelona-focused digest.
+REMOTE_EU_ANCHORS = ("emea", "europe", "spain", "europa")
+
+
+def passes_location_filter(location):
+    """Universal location gate applied to EVERY adapter (greenhouse/lever/ashby
+    included — these were previously unfiltered and flooded the digest with
+    Stripe's US/India roles). A job passes when:
+      - the location names a Spain/Catalonia target city/region, OR
+      - it is remote AND anchored to Europe/EMEA/Spain, OR
+      - the location is blank (unknown → leave it for scoring to judge)."""
+    loc = (location or "").strip().lower()
+    if not loc:
+        return True
+    if any(k in loc for k in LOCATION_KEYWORDS):
+        return True
+    if "remote" in loc and any(a in loc for a in REMOTE_EU_ANCHORS):
+        return True
+    return False
+
+
 def load_companies():
     path = os.path.join(os.path.dirname(__file__), "..", "data", "target_companies.json")
     with open(path, "r", encoding="utf-8") as f:
@@ -296,12 +318,15 @@ def fetch_company(company):
 
     jobs = []
     for r in raw:
+        # Intern / junior pre-screen (same rule as the Adzuna fetcher)
+        if is_excluded_title(r["title"]):
+            continue
         if not is_finance_role(r["title"]):
             continue
-        # Greenhouse/Lever scaleups are Barcelona-based → looser location check
-        if ats["type"] in ("workday", "smartrecruiters", "microsoft", "amazon"):
-            if not is_target_location(r["location"]):
-                continue
+        # Location gate now applies to ALL adapters, greenhouse/lever/ashby
+        # included — they used to slip US/India roles straight into the digest.
+        if not passes_location_filter(r["location"]):
+            continue
         entry = {
             "id": f"ats-{company['name'][:12].replace(' ','')}-{abs(hash(r['url'])) % 10**8}",
             "title": r["title"],
@@ -343,6 +368,12 @@ def run_fetch():
                 "matched_jobs": [], "unmatched_jobs": []}
 
     existing_urls = {j.get("url") for j in data.get("matched_jobs", [])}
+    # Normalized (title, company) pairs already in the pool (incl. Adzuna results) —
+    # stops ATS re-adding a role Adzuna already surfaced, on top of URL dedupe.
+    existing_pairs = {
+        ((j.get("title") or "").lower().strip(), (j.get("company") or "").lower().strip())
+        for j in data.get("matched_jobs", [])
+    }
     added = 0
 
     print(f"🏢 Polling {len(companies)} target company career sites...\n")
@@ -351,9 +382,11 @@ def run_fetch():
         marker = "✅" if jobs else ("⚠️" if "FAILED" in status else "·")
         print(f"  {marker} {company['name']:35s} {status}")
         for j in jobs:
-            if j["url"] not in existing_urls:
+            pair = (j["title"].lower().strip(), j["company"].lower().strip())
+            if j["url"] not in existing_urls and pair not in existing_pairs:
                 data["matched_jobs"].append(j)
                 existing_urls.add(j["url"])
+                existing_pairs.add(pair)
                 added += 1
                 print(f"       → {j['title']} | {j['location']}")
         time.sleep(0.5)  # be polite

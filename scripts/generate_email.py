@@ -48,12 +48,48 @@ def get_hqp_badge(risk):
     return f'<span style="color:{color};font-size:12px;">{icon} HQP Risk: {risk}</span>'
 
 
+def _fmt_eur(n):
+    """Format a euro amount compactly: 90000 → €90k, 1500 → €1.5k, 800 → €800."""
+    try:
+        n = float(n)
+    except (TypeError, ValueError):
+        return None
+    if n >= 1000:
+        k = n / 1000
+        return f"€{k:.0f}k" if k == int(k) else f"€{k:.1f}k"
+    return f"€{int(n)}"
+
+
+def _salary_range(smin, smax):
+    """Build an '€X-Y' string from whatever bounds are present."""
+    lo, hi = _fmt_eur(smin), _fmt_eur(smax)
+    if lo and hi:
+        return f"{lo}-{hi}" if lo != hi else lo
+    return lo or hi
+
+
+def format_salary(job):
+    """Render the headline salary honestly, per its source:
+      posting          → 💰 €X-Y                    (real numbers from the ad)
+      adzuna_predicted → 💰 €X-Y (Adzuna tahmini)   (Adzuna's ML guess)
+      claude_estimate  → 💰 ~€X-Y (tahmini)          (Claude's rubric estimate)"""
+    source = job.get("salary_source", "claude_estimate")
+    rng = _salary_range(job.get("salary_min"), job.get("salary_max"))
+
+    if source == "posting" and rng:
+        return f"💰 {rng}"
+    if source == "adzuna_predicted" and rng:
+        return f"💰 {rng} (Adzuna tahmini)"
+    tc = job.get("scoring", {}).get("tc_estimate", "N/A")
+    return f"💰 ~{tc} (tahmini)"
+
+
 def build_job_card(job):
     """Build HTML card for a single job."""
     scoring = job.get("scoring", {})
     score = scoring.get("overall_score", "?")
     score_color = get_score_color(score)
-    tc_estimate = scoring.get("tc_estimate", "N/A")
+    salary_html = format_salary(job)
     fit_summary = scoring.get("fit_summary", "")
     priority = scoring.get("apply_priority", "WATCH")
     hqp_risk = scoring.get("hqp_risk", "MEDIUM")
@@ -96,7 +132,7 @@ def build_job_card(job):
       </div>
 
       <div style="display:flex;gap:12px;align-items:center;margin-bottom:12px;flex-wrap:wrap;">
-        <span style="color:#e2e8f0;font-weight:600;font-size:14px;">💰 {tc_estimate}</span>
+        <span style="color:#e2e8f0;font-weight:600;font-size:14px;">{salary_html}</span>
         {get_priority_badge(priority)}
         {get_hqp_badge(hqp_risk)}
       </div>
