@@ -12,7 +12,7 @@ import anthropic
 # Config
 # ──────────────────────────────────────────────
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY")
-MODEL = "claude-3-haiku-20240307"  # Fast + cheap
+MODEL = "claude-haiku-4-5-20251001"  # Fast + cheap (Haiku 4.5)
 
 SCORING_PROMPT = """You are an expert career advisor evaluating job listings for a specific candidate.
 
@@ -114,10 +114,10 @@ def score_batch(client, jobs):
     except json.JSONDecodeError as e:
         print(f"  ⚠ JSON parse error: {e}")
         print(f"  Raw response: {response_text[:500]}")
-        return []
+        return None
     except Exception as e:
         print(f"  ⚠ API error: {e}")
-        return []
+        return None
 
 
 def score_all_jobs():
@@ -138,13 +138,25 @@ def score_all_jobs():
     else:
         # Process in batches of 10
         scored = []
+        failed_batches = 0
+        total_batches = 0
         batch_size = 10
         for i in range(0, len(all_jobs), batch_size):
             batch = all_jobs[i:i + batch_size]
+            total_batches += 1
             print(f"\n  Batch {i // batch_size + 1}: scoring {len(batch)} jobs...")
             results = score_batch(client, batch)
+            if results is None:
+                failed_batches += 1
+                continue
             scored.extend(results)
             print(f"  ✅ Got {len(results)} scores")
+
+        if total_batches and failed_batches == total_batches:
+            print(f"\n❌ ALL {total_batches} scoring batches failed - aborting.")
+            sys.exit(1)
+        elif failed_batches:
+            print(f"\n⚠ {failed_batches}/{total_batches} batches failed - digest will be partial.")
 
     # Filter out IRRELEVANT
     relevant = [s for s in scored if s.get("overall_score") != "IRRELEVANT"]

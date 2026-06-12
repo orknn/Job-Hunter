@@ -591,7 +591,14 @@
     "english_first": true,
     "notes": "Sant Cugat campus — HP's largest site in Europe, EMEA finance functions",
     "ats": {
-      "type": "todo"
+      "type": "workday",
+      "tenant": "hpinc",
+      "wd_candidates": [
+        "wd5"
+      ],
+      "site_candidates": [
+        "hpinc"
+      ]
     }
   },
   {
@@ -607,7 +614,8 @@
     "english_first": true,
     "notes": "BCN HQ Spain — direct FMCG match with Nestlé background",
     "ats": {
-      "type": "todo"
+      "type": "none",
+      "note": "SuccessFactors - v2"
     }
   },
   {
@@ -623,7 +631,8 @@
     "english_first": true,
     "notes": "BCN international hub. EX-EMPLOYER: alumni network + Project of the Year track record",
     "ats": {
-      "type": "todo"
+      "type": "none",
+      "note": "Custom careers - v2; use alumni network channel"
     }
   },
   {
@@ -639,7 +648,14 @@
     "english_first": true,
     "notes": "BCN global capability center incl. finance — verify scope via discover",
     "ats": {
-      "type": "todo"
+      "type": "workday",
+      "tenant": "galderma",
+      "wd_candidates": [
+        "wd3"
+      ],
+      "site_candidates": [
+        "External"
+      ]
     }
   },
   {
@@ -655,7 +671,8 @@
     "english_first": true,
     "notes": "BCN offices; SSC in Poland so senior commercial finance only",
     "ats": {
-      "type": "todo"
+      "type": "none",
+      "note": "Custom (Phenom) - v2"
     }
   },
   {
@@ -671,7 +688,8 @@
     "english_first": true,
     "notes": "Viladecans HQ, IAG group = English reporting line",
     "ats": {
-      "type": "todo"
+      "type": "none",
+      "note": "Custom/SF careers - v2"
     }
   },
   {
@@ -687,7 +705,8 @@
     "english_first": true,
     "notes": "Sabadell HQ, IBEX-35 global — partially English-first",
     "ats": {
-      "type": "todo"
+      "type": "none",
+      "note": "SuccessFactors - v2"
     }
   },
   {
@@ -703,7 +722,8 @@
     "english_first": true,
     "notes": "BCN pharma, internationalizing, B-Corp",
     "ats": {
-      "type": "todo"
+      "type": "none",
+      "note": "Custom careers - v2"
     }
   },
   {
@@ -719,7 +739,8 @@
     "english_first": true,
     "notes": "BCN HQ, strong global brand growth",
     "ats": {
-      "type": "todo"
+      "type": "none",
+      "note": "Custom/SF careers - v2"
     }
   },
   {
@@ -752,7 +773,8 @@
     "english_first": true,
     "notes": "BCN HQ, Tripadvisor group",
     "ats": {
-      "type": "todo"
+      "type": "greenhouse",
+      "board": "thefork"
     }
   }
 ]
