@@ -36,6 +36,11 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: python scripts/score_jobs.py
 
+      - name: 🧭 Analyze positioning gaps
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: python scripts/analyze_gaps.py
+
       - name: 📧 Generate email
         run: python scripts/generate_email.py
 
@@ -54,5 +59,7 @@ jobs:
           path: |
             data/fetched_jobs.json
             data/scored_jobs.json
+            data/gap_report.json
             data/email_digest.html
+          if-no-files-found: warn
           retention-days: 30

@@ -15,6 +15,42 @@ def load_scored_jobs():
         return json.load(f)
 
 
+def load_gap_report():
+    """Load positioning gap report, if analyze_gaps.py produced one this run."""
+    data_path = os.path.join(os.path.dirname(__file__), "..", "data", "gap_report.json")
+    if not os.path.exists(data_path):
+        return None
+    with open(data_path, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def build_gap_report_html(report):
+    """Build the weekly positioning-gap section, if a report exists."""
+    if not report or not report.get("weak_dimensions"):
+        return ""
+
+    rows = ""
+    for dim in report["weak_dimensions"]:
+        rows += f"""
+        <div style="padding:12px 0;border-bottom:1px solid #2d2d44;">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;">
+            <span style="color:#e2e8f0;font-weight:700;font-size:14px;">{dim.get('dimension', '')}</span>
+            <span style="color:#64748b;font-size:11px;">{dim.get('frequency', 0)}x this week</span>
+          </div>
+          <div style="color:#94a3b8;font-size:12px;margin-top:4px;">{dim.get('insight', '')}</div>
+          <div style="color:#a78bfa;font-size:12px;margin-top:6px;">→ {dim.get('action', '')}</div>
+        </div>
+        """
+
+    return f"""
+    <div style="background:#1a1a2e;border:1px solid #2d2d44;border-left:4px solid #a78bfa;border-radius:12px;padding:20px;margin-bottom:24px;">
+      <div style="font-size:15px;font-weight:700;color:#e2e8f0;margin-bottom:4px;">🧭 This Week's Positioning Gaps</div>
+      <div style="color:#94a3b8;font-size:13px;margin-bottom:12px;">{report.get('summary', '')}</div>
+      {rows}
+    </div>
+    """
+
+
 def get_score_color(score):
     """Return color for score badge."""
     colors = {
@@ -155,6 +191,7 @@ def generate_email():
     data = load_scored_jobs()
     jobs = data.get("scored_jobs", [])
     score_date = data.get("score_date", datetime.utcnow().isoformat())
+    gap_report_html = build_gap_report_html(load_gap_report())
 
     # Parse date for display
     try:
@@ -241,6 +278,9 @@ def generate_email():
         </div>
       </div>
     </div>
+
+    <!-- Positioning Gap Report -->
+    {gap_report_html}
 
     <!-- Job Sections -->
     {sections_html}

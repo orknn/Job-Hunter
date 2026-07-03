@@ -13,10 +13,13 @@ GitHub Actions (Every Saturday 11:30 CEST)
 ├── 2. SCORE — Claude AI (Haiku) → 10-dimension rubric scoring (A-D)
 │   └── Coty correction applied, HQP risk flagged
 │
-├── 3. GENERATE — Build premium dark-theme HTML email
-│   └── Grouped by tier: A → B → C → D
+├── 3. ANALYZE GAPS — Claude AI (Haiku) → weekly positioning gap report
+│   └── Tallies repeat weak dimensions across B/C tier near-misses, suggests actions
 │
-└── 4. SEND — Gmail SMTP → bicenorkun@gmail.com
+├── 4. GENERATE — Build premium dark-theme HTML email
+│   └── Gap report banner, then grouped by tier: A → B → C → D
+│
+└── 5. SEND — Gmail SMTP → bicenorkun@gmail.com
 ```
 
 ## Setup (One-time, ~10 minutes)
@@ -58,7 +61,7 @@ Go to: **[github.com/orknn/Job-Hunter/actions](https://github.com/orknn/Job-Hunt
 | Service | Monthly Cost |
 |---|---|
 | Adzuna API | **€0** (free tier: 2,500 calls/month) |
-| Claude AI (Haiku) | **~€0.20** (4 runs × ~50 jobs) |
+| Claude AI (Haiku) | **~€0.20** (4 runs × ~50 jobs, scoring + gap analysis) |
 | Gmail SMTP | **€0** |
 | **Total** | **< €0.50/month** |
 
@@ -70,6 +73,7 @@ Job Hunter/
 ├── scripts/
 │   ├── fetch_jobs.py                   # Adzuna API job fetcher
 │   ├── score_jobs.py                   # Claude AI scorer (10 dimensions)
+│   ├── analyze_gaps.py                 # Weekly positioning gap report (B/C tier near-misses)
 │   ├── generate_email.py               # Premium HTML email builder
 │   └── send_email.py                   # Gmail SMTP sender
 ├── data/
