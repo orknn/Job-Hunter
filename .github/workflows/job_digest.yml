@@ -31,14 +31,14 @@ jobs:
       - name: 🏢 Fetch jobs from target company ATS boards
         run: python scripts/fetch_ats.py
 
-      - name: 🤖 Score jobs with Claude AI
+      - name: 🤖 Score jobs
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: python scripts/score_jobs.py
 
       - name: 🧭 Analyze positioning gaps
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: python scripts/analyze_gaps.py
 
       - name: 📧 Generate email

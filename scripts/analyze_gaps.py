@@ -7,11 +7,16 @@ ilana taşımak için hangi 1-3 alanda çalışması gerektiğini özetler.
 import os
 import sys
 import json
-import anthropic
 from collections import Counter
 
-ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY")
-MODEL = "claude-haiku-4-5-20251001"
+import llm
+
+# Provider and model live in llm.py; nothing here names either.
+GAP_SYSTEM_PROMPT = (
+    "You are a career strategist reading a batch of near-miss job scorings. "
+    "You reply with a single JSON object and nothing else — no prose, no "
+    "markdown fences."
+)
 
 DIM_LABELS = {
     "total_comp": "Total Comp",
@@ -86,8 +91,8 @@ def collect_weak_dimensions(jobs):
 
 
 def analyze_gaps():
-    if not ANTHROPIC_API_KEY:
-        print("ERROR: ANTHROPIC_API_KEY environment variable required.")
+    if not llm.api_key_present():
+        print("ERROR: OPENAI_API_KEY environment variable required.")
         sys.exit(1)
 
     data = load_scored_jobs()
@@ -118,20 +123,12 @@ def analyze_gaps():
     )
 
     print(f"🧭 Analyzing positioning gaps across {len(near_miss)} near-miss jobs...")
-    client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
 
     try:
-        message = client.messages.create(
-            model=MODEL,
-            max_tokens=1024,
-            messages=[{"role": "user", "content": prompt}],
-        )
-        response_text = message.content[0].text
-        if "```json" in response_text:
-            response_text = response_text.split("```json")[1].split("```")[0]
-        elif "```" in response_text:
-            response_text = response_text.split("```")[1].split("```")[0]
-        report = json.loads(response_text.strip())
+        # The gap report is already a JSON object, so it needs no unwrapping —
+        # unlike the scoring call, whose natural answer is a list.
+        report = llm.call_json(
+            system=GAP_SYSTEM_PROMPT, user=prompt, max_tokens=1024)
     except Exception as e:
         print(f"⚠ Gap analysis failed ({e}) — skipping gap report for this run.")
         if os.path.exists(output_path):

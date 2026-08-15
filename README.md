@@ -10,10 +10,10 @@ GitHub Actions (Every Saturday 11:30 CEST)
 ├── 1. FETCH — Adzuna API → search 8 finance queries in Barcelona
 │   └── Match against 42 target companies (Tier A/B/C + Hidden)
 │
-├── 2. SCORE — Claude AI (Haiku) → 10-dimension rubric scoring (A-D)
+├── 2. SCORE — OpenAI (gpt-5.6-luna) → 10-dimension rubric scoring (A-D)
 │   └── Coty correction applied, HQP risk flagged
 │
-├── 3. ANALYZE GAPS — Claude AI (Haiku) → weekly positioning gap report
+├── 3. ANALYZE GAPS — OpenAI (gpt-5.6-luna) → weekly positioning gap report
 │   └── Tallies repeat weak dimensions across B/C tier near-misses, suggests actions
 │
 ├── 4. GENERATE — Build premium dark-theme HTML email
@@ -48,7 +48,7 @@ Click **"New repository secret"** for each:
 |---|---|---|
 | `ADZUNA_APP_ID` | Your App ID | developer.adzuna.com registration email |
 | `ADZUNA_APP_KEY` | Your App Key | developer.adzuna.com registration email |
-| `ANTHROPIC_API_KEY` | Your Claude API key | console.anthropic.com → API Keys |
+| `OPENAI_API_KEY` | Your OpenAI API key | platform.openai.com → API Keys |
 | `GMAIL_USERNAME` | `bicenorkun@gmail.com` | Your email |
 | `GMAIL_APP_PASSWORD` | 16-char app password | Step 2 above |
 
@@ -61,7 +61,7 @@ Go to: **[github.com/orknn/Job-Hunter/actions](https://github.com/orknn/Job-Hunt
 | Service | Monthly Cost |
 |---|---|
 | Adzuna API | **€0** (free tier: 2,500 calls/month) |
-| Claude AI (Haiku) | **~€0.20** (4 runs × ~50 jobs, scoring + gap analysis) |
+| OpenAI (gpt-5.6-luna) | **~€0.20** (4 runs × ~50 jobs, scoring + gap analysis) |
 | Gmail SMTP | **€0** |
 | **Total** | **< €0.50/month** |
 
@@ -72,7 +72,8 @@ Job Hunter/
 ├── .github/workflows/job_digest.yml    # GitHub Actions cron workflow
 ├── scripts/
 │   ├── fetch_jobs.py                   # Adzuna API job fetcher
-│   ├── score_jobs.py                   # Claude AI scorer (10 dimensions)
+│   ├── llm.py                          # the one place this repo calls a model
+│   ├── score_jobs.py                   # rubric scorer (10 dimensions)
 │   ├── analyze_gaps.py                 # Weekly positioning gap report (B/C tier near-misses)
 │   ├── generate_email.py               # Premium HTML email builder
 │   └── send_email.py                   # Gmail SMTP sender

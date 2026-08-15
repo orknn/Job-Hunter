@@ -28,8 +28,8 @@ git push -u origin main
 2. Sayfanın sağ üst köşesindeki yeşil **"New repository secret"** butonuna tıkla.
 3. Şimdi her bir şifreyi tek tek ekleyeceğiz:
 
-### 1️⃣ Claude API Şifresi (`ANTHROPIC_API_KEY`)
-- **Name (İsim)** alanına yaz: `ANTHROPIC_API_KEY`
+### 1️⃣ OpenAI API Şifresi (`OPENAI_API_KEY`)
+- **Name (İsim)** alanına yaz: `OPENAI_API_KEY`
 - **Secret (Değer)** alanına: `sk-ant-api03...` ile başlayan o uzun şifreni yapıştır.
 - **"Add secret"** butonuna bas.
 

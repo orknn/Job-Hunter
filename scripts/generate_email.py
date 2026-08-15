@@ -108,8 +108,8 @@ def format_salary(job):
     """Render the headline salary honestly, per its source:
       posting          → 💰 €X-Y                    (real numbers from the ad)
       adzuna_predicted → 💰 €X-Y (Adzuna tahmini)   (Adzuna's ML guess)
-      claude_estimate  → 💰 ~€X-Y (tahmini)          (Claude's rubric estimate)"""
-    source = job.get("salary_source", "claude_estimate")
+      model_estimate   → 💰 ~€X-Y (tahmini)          (the model's rubric estimate)"""
+    source = job.get("salary_source", "model_estimate")
     rng = _salary_range(job.get("salary_min"), job.get("salary_max"))
 
     if source == "posting" and rng:
@@ -289,7 +289,7 @@ def generate_email():
     <div style="text-align:center;padding:32px 20px;margin-top:32px;border-top:1px solid #2d2d44;">
       <div style="color:#64748b;font-size:12px;">
         Job Hunter · Automated weekly digest<br>
-        Powered by Adzuna + Claude AI<br>
+        Powered by Adzuna + OpenAI<br>
         <span style="color:#475569;">42 target companies · Barcelona & Remote</span>
       </div>
     </div>
