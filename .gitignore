@@ -1,1 +1,21 @@
 .DS_Store
+
+# Credentials. This repo is public: an .env committed here is a key published
+# to the world the moment it is pushed. Listed before one exists rather than
+# after, because the window between creating the file and remembering to
+# ignore it is exactly when it gets picked up by `git add .`.
+.env
+.env.*
+!.env.example
+
+# Per-run artifacts — fetched postings, scores, the rendered digest and its log
+data/fetched_jobs.json
+data/scored_jobs.json
+data/email_digest.html
+data/gap_report.json
+digest.log
+
+__pycache__/
+*.py[cod]
+venv/
+.venv/
