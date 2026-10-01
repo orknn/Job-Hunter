@@ -61,6 +61,44 @@ def is_excluded_title(title):
     return bool(_EXCLUDED_TITLE_RE.search(title or ""))
 
 
+# Seniority pre-screen — the candidate targets Director / Head-level roles
+# (8-10+ years). Analyst/junior titles never reach scoring or the digest.
+# A senior marker in the title overrides (e.g. "Associate Director", "Head of
+# Financial Analysis" style titles survive).
+JUNIOR_TITLE_KEYWORDS = [
+    "analyst", "analista", "junior", "jr", "entry level", "graduate",
+    "associate", "asociado", "asociada", "auxiliar", "assistant", "asistente",
+]
+SENIOR_TITLE_OVERRIDES = [
+    "director", "directora", "head", "vp", "vice president", "chief", "cfo",
+    "responsable", "principal",
+]
+_JUNIOR_TITLE_RE = re.compile(
+    r"\b(" + "|".join(re.escape(k) for k in JUNIOR_TITLE_KEYWORDS) + r")\b",
+    re.IGNORECASE,
+)
+_SENIOR_OVERRIDE_RE = re.compile(
+    r"\b(" + "|".join(re.escape(k) for k in SENIOR_TITLE_OVERRIDES) + r")\b",
+    re.IGNORECASE,
+)
+# Unit-scoped controller roles (plant/factory/sales/site controller) are
+# operational mid-level positions, not the group/Director track — cut them
+# unless a senior marker overrides ("Director, Plant Controlling" survives).
+_UNIT_CONTROLLER_RE = re.compile(
+    r"\b(plant|factory|site|sales|store|warehouse|commercial)\s+(financial\s+|finance\s+)?controll?er\b"
+    r"|\bcontroller\s+(de\s+)?(planta|f[áa]brica|ventas|comercial)\b",
+    re.IGNORECASE,
+)
+
+
+def is_below_seniority_bar(title):
+    """True if the title reads junior/analyst/unit-level with no senior marker."""
+    t = title or ""
+    if _SENIOR_OVERRIDE_RE.search(t):
+        return False
+    return bool(_JUNIOR_TITLE_RE.search(t)) or bool(_UNIT_CONTROLLER_RE.search(t))
+
+
 def load_target_companies():
     """Load target companies from JSON file."""
     data_path = os.path.join(os.path.dirname(__file__), "..", "data", "target_companies.json")
@@ -217,7 +255,7 @@ def fetch_all_jobs():
             company_name = job.get("company", {}).get("display_name", "Unknown")
 
             # Intern / junior pre-screen — drop before scoring spend
-            if is_excluded_title(title):
+            if is_excluded_title(title) or is_below_seniority_bar(title):
                 continue
 
             # Normalized pair dedupe (in addition to id-based) — Adzuna reposts

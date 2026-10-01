@@ -2,7 +2,9 @@
 fetch_ats.py — Hedef şirketlerin kariyer sayfalarını (ATS) doğrudan sorgular.
 
 Adzuna'nın görmediği ilanları kaynağından çeker: Workday, Greenhouse, Lever,
-SmartRecruiters, Amazon Jobs ve Microsoft Careers public JSON endpoint'leri.
+SmartRecruiters, Amazon Jobs ve Microsoft Careers public JSON endpoint'leri;
+ayrıca SuccessFactors CSB (HTML/sitemap), iCIMS (Jibe JSON + klasik portal),
+Teamtailor/SF RSS feed'leri ve Workable public API.
 
 Kullanım:
   python scripts/fetch_ats.py            # fetch + fetched_jobs.json'a merge
@@ -10,15 +12,17 @@ Kullanım:
 """
 
 import os
+import re
 import sys
+import html
 import json
 import time
 import requests
 from datetime import datetime
 
-# Reuse language classification + intern pre-screen from the Adzuna fetcher
+# Reuse language classification + intern/seniority pre-screens from the Adzuna fetcher
 sys.path.insert(0, os.path.dirname(__file__))
-from fetch_jobs import classify_language_fit, is_excluded_title  # noqa: E402
+from fetch_jobs import classify_language_fit, is_excluded_title, is_below_seniority_bar  # noqa: E402
 
 HEADERS = {"User-Agent": "Mozilla/5.0 (Job-Hunter weekly digest; personal use)"}
 TIMEOUT = 20
@@ -32,10 +36,23 @@ TITLE_KEYWORDS = [
 # Location must match at least one (lowercase substring match)
 LOCATION_KEYWORDS = [
     "barcelona", "catalonia", "cataluña", "catalunya", "spain", "españa",
-    "espana", "madrid", "remote - emea", "emea remote", "remote, spain",
+    "espana", "remote - emea", "emea remote", "remote, spain",
     # Catalan metro area — where many target HQs actually sit
     "sant cugat", "hospitalet", "sant feliu", "cornella", "cornellà",
     "esplugues", "sant joan despi", "sant joan despí", "el prat", "viladecans",
+]
+
+# Barcelona-focused digest: a location naming another Spanish city passes only
+# if Barcelona/Catalonia is ALSO listed (multi-location postings). "Madrid,
+# Spain" alone used to slip through because "spain" matched.
+BCN_KEYWORDS = [
+    "barcelona", "catalonia", "cataluña", "catalunya", "sant cugat",
+    "hospitalet", "sant feliu", "cornella", "cornellà", "esplugues",
+    "sant joan despi", "sant joan despí", "el prat", "viladecans",
+]
+NON_BCN_SPAIN_CITIES = [
+    "madrid", "valencia", "sevilla", "seville", "bilbao", "zaragoza",
+    "malaga", "málaga", "alicante", "murcia", "vigo", "gijon", "gijón",
 ]
 
 # Seniority hint — used only for soft prioritization, not exclusion
@@ -185,8 +202,11 @@ def fetch_smartrecruiters(cfg, **_):
 
 
 def fetch_amazon(cfg, **_):
+    # NOTE: the facet param must be the array form "normalized_country_code[]" —
+    # the bare "normalized_country_code" is silently ignored and returns
+    # GLOBAL results (the digest once surfaced India/US roles because of this).
     url = ("https://www.amazon.jobs/en/search.json"
-           "?base_query=finance&normalized_country_code=ESP&result_limit=50&sort=recent")
+           "?base_query=finance&normalized_country_code%5B%5D=ESP&result_limit=50&sort=recent")
     try:
         r = requests.get(url, headers=HEADERS, timeout=TIMEOUT)
         if r.status_code != 200:
@@ -248,6 +268,244 @@ def fetch_ashby(cfg, **_):
         return None
 
 
+def _strip_tags(text):
+    text = re.sub(r"<[^>]+>", " ", text or "")
+    return re.sub(r"\s+", " ", html.unescape(text)).strip()
+
+
+def fetch_successfactors(cfg, **_):
+    """SAP SuccessFactors 'Career Site Builder' sites (jobs.<company>.com).
+    No public JSON API, but the job list is plain server-rendered HTML with a
+    stable jobTitle-link markup shared across deployments:
+      - mode 'table' (default): /search/?q=<kw>[&locationsearch=..]&startrow=N
+      - mode 'tile': /tile-search-results/?q= — for sites whose /search/ page
+        renders results client-side (Boehringer, ISDIN); returns ALL postings
+        regardless of q, so downstream title/location filters do the work.
+    Location sits in a jobLocation span (table) or a 'section-field location'
+    div (tile), always between one title anchor and the next."""
+    host = cfg["host"]
+    mode = cfg.get("mode", "table")
+    queries = cfg.get("queries", ["finance"])
+    locsearch = cfg.get("locationsearch", "")
+
+    anchor_re = re.compile(
+        r'<a[^>]*class="jobTitle-link[^"]*"[^>]*href="([^"]+)"[^>]*>(.*?)</a>', re.S)
+    loc_re = re.compile(
+        r'class="jobLocation"[^>]*>\s*(.*?)\s*</span>'
+        r'|class="[^"]*section-field\s+location[^"]*"[^>]*>(.*?)</div>', re.S)
+
+    def parse_page(page_html, seen, out):
+        matches = list(anchor_re.finditer(page_html))
+        added = 0
+        for i, m in enumerate(matches):
+            path, title = m.group(1), _strip_tags(m.group(2))
+            if path in seen or not title:
+                continue
+            seen.add(path)
+            window = page_html[m.end():matches[i + 1].start() if i + 1 < len(matches) else m.end() + 3000]
+            lm = loc_re.search(window)
+            loc = _strip_tags(lm.group(1) or lm.group(2)) if lm else ""
+            # tile location divs carry an sr-only "Location" label — drop it
+            loc = re.sub(r"^Location:?\s*", "", loc, flags=re.I)
+            if not loc:
+                # Some tile sites (ISDIN) configure no location field at all,
+                # but CSB job paths lead with the city: /job/Barcelona-Treasury-
+                # Technician/123/ — use the slug so the location gate still works.
+                sm = re.search(r"/job/([^/]+)/", path)
+                if sm:
+                    loc = re.sub(r"-", " ", sm.group(1))
+            path = html.unescape(path)  # hrefs carry &amp; entities
+            url = path if path.startswith("http") else f"https://{host}{path}"
+            out.append({"title": title, "location": loc, "url": url,
+                        "description": title, "posted": ""})
+            added += 1
+        return added
+
+    seen, out = set(), []
+    try:
+        if mode == "tile":
+            r = requests.get(f"https://{host}/tile-search-results/?q=",
+                             headers=HEADERS, timeout=TIMEOUT)
+            if r.status_code != 200:
+                return None
+            parse_page(r.text, seen, out)
+        else:
+            for q in queries:
+                for startrow in (0, 25, 50):
+                    params = {"q": q, "startrow": startrow}
+                    if locsearch:
+                        params["locationsearch"] = locsearch
+                    r = requests.get(f"https://{host}/search/", params=params,
+                                     headers=HEADERS, timeout=TIMEOUT)
+                    if r.status_code != 200:
+                        return None if not out else out
+                    if parse_page(r.text, seen, out) == 0:
+                        break  # past the last page (or 0 results)
+                    time.sleep(0.3)
+    except requests.exceptions.RequestException:
+        return None if not out else out
+    return out
+
+
+def fetch_sf_sitemap(cfg, **_):
+    """Fallback for SuccessFactors CSB sites that render everything client-side
+    (Fluidra): sitemap.xml still lists every posting URL, and CSB slugs lead
+    with the city followed by the title (/job/Sant-Cugat-del-Valles-Accounts-
+    Payable-Specialist-B/123/). City and title can't be split reliably, so the
+    whole slug serves as both — the title/location keyword filters still work,
+    and scoring reads the real posting via the URL."""
+    host = cfg["host"]
+    try:
+        r = requests.get(f"https://{host}/sitemap.xml", headers=HEADERS, timeout=TIMEOUT)
+        if r.status_code != 200:
+            return None
+    except requests.exceptions.RequestException:
+        return None
+    out = []
+    for url in re.findall(r"<loc>(.*?)</loc>", r.text):
+        m = re.search(r"/job/([^/]+)/\d+/?$", html.unescape(url))
+        if not m:
+            continue
+        slug_text = re.sub(r"-+", " ", m.group(1)).strip()
+        out.append({"title": slug_text, "location": slug_text,
+                    "url": html.unescape(url), "description": slug_text, "posted": ""})
+    return out
+
+
+def fetch_jibe(cfg, **_):
+    """iCIMS Talent Cloud / Jibe career sites (careers.se.com etc.) — clean
+    public JSON at /api/jobs. Job objects live under each item's 'data' key."""
+    host = cfg["host"]
+    params = {"keywords": cfg.get("keywords", "finance"), "page": 1, "limit": 50}
+    if cfg.get("location"):
+        params["location"] = cfg["location"]
+    try:
+        r = requests.get(f"https://{host}/api/jobs", params=params,
+                         headers=HEADERS, timeout=TIMEOUT)
+        if r.status_code != 200:
+            return None
+        jobs = r.json().get("jobs", [])
+    except (requests.exceptions.RequestException, ValueError):
+        return None
+    out = []
+    for j in jobs:
+        d = j.get("data", j)
+        out.append({
+            "title": d.get("title", ""),
+            "location": d.get("full_location") or ", ".join(
+                filter(None, [d.get("city", ""), d.get("country", "")])),
+            "url": f"https://{host}/jobs/{d.get('slug', '')}",
+            "description": _strip_tags(d.get("description", ""))[:2000],
+            "posted": d.get("create_date", "") or d.get("posted_date", ""),
+        })
+    return out
+
+
+def fetch_icims(cfg, **_):
+    """Classic iCIMS career portals (careers-<company>.icims.com). The
+    in_iframe=1 variant returns lightweight server-rendered job cards."""
+    host = cfg["host"]
+    queries = cfg.get("queries", ["finance"])
+    card_re = re.compile(r'iCIMS_JobCardItem(.*?)(?=iCIMS_JobCardItem|</ul>)', re.S)
+    seen, out = set(), []
+    for q in queries:
+        try:
+            r = requests.get(
+                f"https://{host}/jobs/search",
+                params={"ss": 1, "searchKeyword": q, "in_iframe": 1},
+                headers=HEADERS, timeout=TIMEOUT)
+        except requests.exceptions.RequestException:
+            return None if not out else out
+        if r.status_code != 200:
+            return None if not out else out
+        for card in card_re.findall(r.text):
+            a = re.search(r'<a href="(https?://[^"]+/jobs/\d+/[^"]+)"[^>]*title="([^"]+)"', card)
+            if not a or a.group(1) in seen:
+                continue
+            seen.add(a.group(1))
+            title = re.sub(r"^\d+\s*-\s*", "", html.unescape(a.group(2)))
+            lm = re.search(r'Job Locations?</span>\s*<span[^>]*>\s*([^<]+)', card)
+            out.append({
+                "title": title,
+                "location": _strip_tags(lm.group(1)) if lm else "",
+                "url": a.group(1).split("?")[0],
+                "description": title,
+                "posted": "",
+            })
+        time.sleep(0.3)
+    return out
+
+
+def fetch_rss(cfg, **_):
+    """Generic job-feed RSS adapter (Teamtailor /jobs.rss, SuccessFactors
+    /services/rss/job/, ...). Location comes from Teamtailor's tt:* tags when
+    present, else from a trailing '(City, CC, zip)' suffix in the title (the
+    SuccessFactors RSS convention). link_contains scopes multi-brand feeds
+    (e.g. VW Group's — SEAT postings only)."""
+    def tag(item, name):
+        m = re.search(rf"<{name}[^>]*>(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?</{name}>", item, re.S)
+        return _strip_tags(m.group(1)) if m else ""
+
+    try:
+        r = requests.get(cfg["url"], headers=HEADERS, timeout=TIMEOUT)
+        if r.status_code != 200:
+            return None
+    except requests.exceptions.RequestException:
+        return None
+    must = cfg.get("link_contains", "")
+    out = []
+    for item in re.findall(r"<item>(.*?)</item>", r.text, re.S):
+        link = tag(item, "link")
+        if not link or (must and must not in link):
+            continue
+        title = tag(item, "title")
+        loc = tag(item, "tt:location") or ", ".join(
+            filter(None, [tag(item, "tt:city"), tag(item, "tt:country")]))
+        if not loc:
+            m = re.search(r"\(([^()]+,[^()]+)\)\s*$", title)
+            if m:
+                loc = m.group(1).strip()
+                title = title[:m.start()].strip()
+        out.append({
+            "title": title,
+            "location": loc,
+            "url": link,
+            "description": tag(item, "description")[:2000] or title,
+            "posted": tag(item, "pubDate"),
+        })
+    return out
+
+
+def fetch_workable(cfg, **_):
+    """Workable hosted career pages (apply.workable.com/<account>) — public
+    v3 jobs endpoint, POST with an empty query returns all published roles."""
+    account = cfg["account"]
+    try:
+        r = requests.post(
+            f"https://apply.workable.com/api/v3/accounts/{account}/jobs",
+            json={"query": cfg.get("query", ""), "location": [], "department": [],
+                  "worktype": [], "remote": []},
+            headers={**HEADERS, "Content-Type": "application/json"}, timeout=TIMEOUT)
+        if r.status_code != 200:
+            return None
+        results = r.json().get("results", [])
+    except (requests.exceptions.RequestException, ValueError):
+        return None
+    return [
+        {
+            "title": j.get("title", ""),
+            "location": ", ".join(filter(None, [
+                (j.get("location") or {}).get("city", ""),
+                (j.get("location") or {}).get("country", ""),
+            ])),
+            "url": f"https://apply.workable.com/{account}/j/{j.get('shortcode', '')}/",
+            "description": j.get("title", ""),
+            "posted": j.get("published", ""),
+        }
+        for j in results
+    ]
+
+
 ADAPTERS = {
     "workday": fetch_workday,
     "ashby": fetch_ashby,
@@ -256,7 +514,81 @@ ADAPTERS = {
     "smartrecruiters": fetch_smartrecruiters,
     "amazon": fetch_amazon,
     "microsoft": fetch_microsoft,
+    "successfactors": fetch_successfactors,
+    "sf_sitemap": fetch_sf_sitemap,
+    "jibe": fetch_jibe,
+    "icims": fetch_icims,
+    "rss": fetch_rss,
+    "workable": fetch_workable,
 }
+
+
+# ──────────────────────────────────────────────
+# Job-detail enrichment — most list endpoints (Workday CXS list, SF CSB pages,
+# iCIMS cards) carry no description, so entries land with description == title
+# and Claude scores blind: a "+4 years" controller role once reached the digest
+# as grade D because the scorer never saw the experience requirement. For the
+# few jobs that survive the filters, fetch the posting itself.
+# ──────────────────────────────────────────────
+
+MAX_ENRICH_PER_COMPANY = 8
+
+_WORKDAY_URL = re.compile(
+    r"https://([^.]+)\.(wd\d+)\.myworkdayjobs\.com/[^/]+/([^/]+)(/job/.+)$")
+# CSB detail pages mark the body with schema.org itemprop="description"
+_CSB_DESC = re.compile(
+    r'itemprop="description"[^>]*>(.*?)'
+    r'(?=<(?:div|section|footer)[^>]*(?:class="job|id="similar|itemprop=)|data-careersite-propertyid)',
+    re.S)
+_META_DESC = re.compile(
+    r'<meta[^>]+(?:property="og:description"|name="description")[^>]+content="([^"]+)"')
+
+
+def _workday_posting_info(url):
+    """jobPostingInfo dict for a Workday job URL, or {} when unavailable."""
+    m = _WORKDAY_URL.match(url)
+    if not m:
+        return {}
+    tenant, wd, site, path = m.groups()
+    try:
+        r = requests.get(
+            f"https://{tenant}.{wd}.myworkdayjobs.com/wday/cxs/{tenant}/{site}{path}",
+            headers=HEADERS, timeout=TIMEOUT)
+        if r.status_code != 200:
+            return {}
+        return r.json().get("jobPostingInfo") or {}
+    except (requests.exceptions.RequestException, ValueError):
+        return {}
+
+
+# Workday's list endpoint collapses multi-location postings to "2 Locations",
+# which names no city — the location gate then drops a Barcelona role unseen
+# (Rockwell's "Senior Finance Business Partner", Barcelona + Katowice).
+_MULTI_LOCATION_RE = re.compile(r"^\s*\d+\s+locations?\s*$", re.IGNORECASE)
+
+
+def resolve_workday_locations(url):
+    """Real location list for a multi-location Workday posting, or ''."""
+    info = _workday_posting_info(url)
+    locations = [info.get("location") or ""] + list(info.get("additionalLocations") or [])
+    return " / ".join(loc for loc in locations if loc)
+
+
+def fetch_detail_description(url, ats_type):
+    """Return the real posting text for a job URL, or '' when unavailable."""
+    try:
+        if ats_type == "workday" and _WORKDAY_URL.match(url):
+            return _strip_tags(_workday_posting_info(url).get("jobDescription", ""))
+        r = requests.get(url, headers=HEADERS, timeout=TIMEOUT)
+        if r.status_code != 200:
+            return ""
+        m = _CSB_DESC.search(r.text)
+        if m:
+            return _strip_tags(m.group(1))
+        m = _META_DESC.search(r.text)
+        return _strip_tags(m.group(1)) if m else ""
+    except (requests.exceptions.RequestException, ValueError):
+        return ""
 
 
 # ──────────────────────────────────────────────
@@ -289,6 +621,10 @@ def passes_location_filter(location):
     loc = (location or "").strip().lower()
     if not loc:
         return True
+    # Another Spanish city named without Barcelona/Catalonia → out (e.g.
+    # "Madrid, Spain" — the generic "spain" keyword would otherwise pass it)
+    if any(c in loc for c in NON_BCN_SPAIN_CITIES) and not any(k in loc for k in BCN_KEYWORDS):
+        return False
     if any(k in loc for k in LOCATION_KEYWORDS):
         return True
     if "remote" in loc and any(a in loc for a in REMOTE_EU_ANCHORS):
@@ -317,16 +653,28 @@ def fetch_company(company):
         return [], "ENDPOINT FAILED"
 
     jobs = []
+    enriched = 0
     for r in raw:
-        # Intern / junior pre-screen (same rule as the Adzuna fetcher)
-        if is_excluded_title(r["title"]):
+        # Intern / junior + seniority pre-screen (same rules as the Adzuna fetcher)
+        if is_excluded_title(r["title"]) or is_below_seniority_bar(r["title"]):
             continue
         if not is_finance_role(r["title"]):
             continue
+        if ats["type"] == "workday" and _MULTI_LOCATION_RE.match(r["location"] or ""):
+            r["location"] = resolve_workday_locations(r["url"]) or r["location"]
+            time.sleep(0.4)
         # Location gate now applies to ALL adapters, greenhouse/lever/ashby
         # included — they used to slip US/India roles straight into the digest.
         if not passes_location_filter(r["location"]):
             continue
+        # Thin description = the scorer would judge from the title alone.
+        # Fetch the actual posting for the handful of jobs that got this far.
+        if len(r["description"]) < 200 and enriched < MAX_ENRICH_PER_COMPANY:
+            enriched += 1
+            detail = fetch_detail_description(r["url"], ats["type"])
+            if detail:
+                r["description"] = detail[:3000]
+            time.sleep(0.4)
         entry = {
             "id": f"ats-{company['name'][:12].replace(' ','')}-{abs(hash(r['url'])) % 10**8}",
             "title": r["title"],

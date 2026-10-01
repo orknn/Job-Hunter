@@ -81,8 +81,10 @@
     "english_first": true,
     "notes": "BCN office, multi-BU complexity",
     "ats": {
-      "type": "none",
-      "note": "SuccessFactors — no public JSON API, v2"
+      "type": "successfactors",
+      "host": "jobs.bayer.com",
+      "locationsearch": "Spain",
+      "note": "SF Career Site Builder — server-rendered /search/"
     }
   },
   {
@@ -121,8 +123,8 @@
     "english_first": true,
     "notes": "Strong RSU, English-only, FP&A maturity",
     "ats": {
-      "type": "none",
-      "note": "Careers API blocked/changed — revisit adapter in v2"
+      "type": "microsoft",
+      "note": "SSL cert mismatch from some networks — degrades to ENDPOINT FAILED gracefully"
     }
   },
   {
@@ -154,8 +156,10 @@
     "english_first": true,
     "notes": "English ops, FP&A track, stable culture",
     "ats": {
-      "type": "none",
-      "note": "SuccessFactors (own product) — v2"
+      "type": "successfactors",
+      "host": "jobs.sap.com",
+      "locationsearch": "Barcelona",
+      "note": "SF Career Site Builder — server-rendered /search/"
     }
   },
   {
@@ -172,7 +176,7 @@
     "notes": "IBEX-35, English ops, M&A heavy, public company exposure",
     "ats": {
       "type": "none",
-      "note": "SuccessFactors — v2"
+      "note": "Cornerstone (cellnextelecom.csod.com) — search API needs CSRF token dance, v3"
     }
   },
   {
@@ -188,8 +192,9 @@
     "english_first": true,
     "notes": "New IPO 2024, growing, shares available",
     "ats": {
-      "type": "none",
-      "note": "SuccessFactors — v2"
+      "type": "successfactors",
+      "host": "jobs.puig.com",
+      "note": "SF Career Site Builder — server-rendered /search/"
     }
   },
   {
@@ -205,8 +210,10 @@
     "english_first": true,
     "notes": "VW Group, big benefits, EV growth; Martorell 30km BCN commute",
     "ats": {
-      "type": "none",
-      "note": "SuccessFactors — v2"
+      "type": "rss",
+      "url": "https://jobs.volkswagen-group.com/services/rss/job/?locale=en_US&keywords=(finance)",
+      "link_contains": "/SEAT/",
+      "note": "Best-effort: VW group RSS caps at 20 recent items, SEAT postings not in group sitemap, seatjobs.com SPA is obfuscated with no visible API — real coverage needs v3"
     }
   },
   {
@@ -222,8 +229,10 @@
     "english_first": true,
     "notes": "German MNC, stable, sponsorship confirmed",
     "ats": {
-      "type": "none",
-      "note": "SuccessFactors — v2"
+      "type": "successfactors",
+      "host": "jobs.boehringer-ingelheim.com",
+      "mode": "tile",
+      "note": "SF CSB — /search/ is JS-rendered, use /tile-search-results/"
     }
   },
   {
@@ -303,7 +312,7 @@
     "notes": "Global ops in English, IVD market leader",
     "ats": {
       "type": "none",
-      "note": "SuccessFactors — v2"
+      "note": "iCIMS portal (careers-werfen.icims.com) is NA-only; ES/BCN jobs live on werfen.com Drupal careers-finder — v3"
     }
   },
   {
@@ -421,8 +430,9 @@
     "english_first": true,
     "notes": "NYSE listed, restructuring phase — risk + opportunity",
     "ats": {
-      "type": "none",
-      "note": "Custom/SF careers — v2"
+      "type": "workable",
+      "account": "wallbox",
+      "note": "Workable public v3 API — account live but 0 published roles as of 2026-07 (restructuring)"
     }
   },
   {
@@ -592,12 +602,12 @@
     "notes": "Sant Cugat campus — HP's largest site in Europe, EMEA finance functions",
     "ats": {
       "type": "workday",
-      "tenant": "hpinc",
+      "tenant": "hp",
       "wd_candidates": [
         "wd5"
       ],
       "site_candidates": [
-        "hpinc"
+        "ExternalCareerSite"
       ]
     }
   },
@@ -615,7 +625,7 @@
     "notes": "BCN HQ Spain — direct FMCG match with Nestlé background",
     "ats": {
       "type": "none",
-      "note": "SuccessFactors - v2"
+      "note": "Custom AEM careers site, job data source unclear — v3"
     }
   },
   {
@@ -631,8 +641,10 @@
     "english_first": true,
     "notes": "BCN international hub. EX-EMPLOYER: alumni network + Project of the Year track record",
     "ats": {
-      "type": "none",
-      "note": "Custom careers - v2; use alumni network channel"
+      "type": "jibe",
+      "host": "careers.se.com",
+      "location": "Barcelona, Spain",
+      "note": "iCIMS Talent Cloud (Jibe) — public /api/jobs JSON. Alumni channel still primary."
     }
   },
   {
@@ -688,8 +700,9 @@
     "english_first": true,
     "notes": "Viladecans HQ, IAG group = English reporting line",
     "ats": {
-      "type": "none",
-      "note": "Custom/SF careers - v2"
+      "type": "rss",
+      "url": "https://careers.vueling.com/jobs.rss",
+      "note": "Teamtailor — public jobs.rss with tt:city/tt:location tags"
     }
   },
   {
@@ -705,8 +718,9 @@
     "english_first": true,
     "notes": "Sabadell HQ, IBEX-35 global — partially English-first",
     "ats": {
-      "type": "none",
-      "note": "SuccessFactors - v2"
+      "type": "sf_sitemap",
+      "host": "jobs.fluidra.com",
+      "note": "SF CSB fully JS-rendered; sitemap.xml lists all postings, slug = city+title"
     }
   },
   {
@@ -739,8 +753,10 @@
     "english_first": true,
     "notes": "BCN HQ, strong global brand growth",
     "ats": {
-      "type": "none",
-      "note": "Custom/SF careers - v2"
+      "type": "successfactors",
+      "host": "jobs.isdin.com",
+      "mode": "tile",
+      "note": "SF CSB — /search/ is JS-rendered, use /tile-search-results/"
     }
   },
   {
@@ -775,6 +791,25 @@
     "ats": {
       "type": "greenhouse",
       "board": "thefork"
+    }
+  },
+  {
+    "id": 44,
+    "name": "Rockwell Automation",
+    "sector": "Industrial",
+    "tier": "B",
+    "target_role": "Senior Finance Manager / Finance Director EMEA",
+    "tc_min": 90000,
+    "tc_max": 130000,
+    "working_model": "Hybrid",
+    "hqp_sponsor": true,
+    "english_first": true,
+    "notes": "BCN office with EMEA finance roles. Tier and TC band are estimates — not verified",
+    "ats": {
+      "type": "workday",
+      "tenant": "rockwellautomation",
+      "wd_candidates": ["wd1"],
+      "site_candidates": ["External_Rockwell_Automation"]
     }
   }
 ]
