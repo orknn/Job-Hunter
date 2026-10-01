@@ -101,7 +101,8 @@ _COMPANY_SUFFIXES = [" s.a.", " s.l.", " sa", " sl", " inc.", " inc", " ltd", " 
                      " emea", " global"]
 # First words too generic to identify a company on their own ("Deutsche Bank"
 # must not claim "Deutsche Telekom").
-_GENERIC_FIRST_WORDS = {"deutsche", "grupo", "banco", "the", "new", "wolters"}
+_GENERIC_FIRST_WORDS = {"deutsche", "grupo", "banco", "the", "new", "wolters",
+                        "merlin", "murphy", "octopus", "multiverse"}
 
 
 def normalize_company_name(name):

@@ -1424,5 +1424,463 @@
       "type": "none",
       "note": "No public endpoint found yet — covered through Adzuna and LinkedIn search"
     }
+  },
+  {
+    "id": 77,
+    "name": "Google",
+    "sector": "Tech",
+    "tier": "A",
+    "target_role": "Senior Finance Manager / Finance Director",
+    "tc_min": 120000,
+    "tc_max": 170000,
+    "working_model": "Hybrid",
+    "hqp_sponsor": false,
+    "english_first": true,
+    "notes": "Barcelona presence — Cloud, AI, Ads. Tier and TC band are estimates — not verified",
+    "aliases": [
+      "Alphabet"
+    ],
+    "ats": {
+      "type": "none",
+      "note": "Custom careers site, no public JSON — covered through Adzuna and LinkedIn search"
+    }
+  },
+  {
+    "id": 78,
+    "name": "Meta",
+    "sector": "Tech",
+    "tier": "A",
+    "target_role": "Senior Finance Manager / Finance Director",
+    "tc_min": 120000,
+    "tc_max": 170000,
+    "working_model": "Hybrid",
+    "hqp_sponsor": false,
+    "english_first": true,
+    "notes": "Engineering / tech hub. Tier and TC band are estimates — not verified",
+    "aliases": [
+      "Meta Platforms"
+    ],
+    "ats": {
+      "type": "none",
+      "note": "Custom careers site, no public JSON — covered through Adzuna and LinkedIn search"
+    }
+  },
+  {
+    "id": 79,
+    "name": "Apple",
+    "sector": "Tech",
+    "tier": "A",
+    "target_role": "Senior Finance Manager / Finance Director",
+    "tc_min": 120000,
+    "tc_max": 170000,
+    "working_model": "Hybrid",
+    "hqp_sponsor": false,
+    "english_first": true,
+    "notes": "Barcelona roles exist, limited corporate footprint. Tier and TC band are estimates — not verified",
+    "ats": {
+      "type": "none",
+      "note": "Custom careers site, no public JSON — covered through Adzuna and LinkedIn search"
+    }
+  },
+  {
+    "id": 80,
+    "name": "Oracle",
+    "sector": "Tech",
+    "tier": "A",
+    "target_role": "Senior Finance Manager / Finance Director",
+    "tc_min": 110000,
+    "tc_max": 160000,
+    "working_model": "Hybrid",
+    "hqp_sponsor": false,
+    "english_first": true,
+    "notes": "Large Barcelona office — Cloud, AI, Data. Tier and TC band are estimates — not verified",
+    "ats": {
+      "type": "none",
+      "note": "Oracle Recruiting Cloud API answers, but no working Spain filter found — covered through Adzuna and LinkedIn search"
+    }
+  },
+  {
+    "id": 81,
+    "name": "Salesforce",
+    "sector": "Tech/SaaS",
+    "tier": "A",
+    "target_role": "Senior Finance Manager / Finance Director",
+    "tc_min": 120000,
+    "tc_max": 170000,
+    "working_model": "Hybrid",
+    "hqp_sponsor": false,
+    "english_first": true,
+    "notes": "Barcelona office. Tier and TC band are estimates — not verified",
+    "ats": {
+      "type": "workday",
+      "tenant": "salesforce",
+      "wd_candidates": [
+        "wd12"
+      ],
+      "site_candidates": [
+        "External_Career_Site"
+      ],
+      "search_texts": [
+        "Barcelona",
+        "Spain"
+      ],
+      "note": "Few Spain postings, so search by location alone and let the title gate pick the finance roles"
+    }
+  },
+  {
+    "id": 82,
+    "name": "Cisco",
+    "sector": "Tech",
+    "tier": "A",
+    "target_role": "Senior Finance Manager / Finance Director",
+    "tc_min": 110000,
+    "tc_max": 160000,
+    "working_model": "Hybrid",
+    "hqp_sponsor": false,
+    "english_first": true,
+    "notes": "Barcelona — AI, networking. Tier and TC band are estimates — not verified",
+    "ats": {
+      "type": "workday",
+      "tenant": "cisco",
+      "wd_candidates": [
+        "wd5"
+      ],
+      "site_candidates": [
+        "Cisco_Careers"
+      ],
+      "search_texts": [
+        "Barcelona",
+        "Spain"
+      ],
+      "note": "Few Spain postings, so search by location alone and let the title gate pick the finance roles"
+    }
+  },
+  {
+    "id": 83,
+    "name": "IBM",
+    "sector": "Tech",
+    "tier": "B",
+    "target_role": "Senior Finance Manager / Finance Director",
+    "tc_min": 100000,
+    "tc_max": 145000,
+    "working_model": "Hybrid",
+    "hqp_sponsor": false,
+    "english_first": true,
+    "notes": "Barcelona — AI, Cloud, Consulting. Tier and TC band are estimates — not verified",
+    "ats": {
+      "type": "none",
+      "note": "Custom careers site, no public JSON — covered through Adzuna and LinkedIn search"
+    }
+  },
+  {
+    "id": 84,
+    "name": "Adobe",
+    "sector": "Tech/SaaS",
+    "tier": "A",
+    "target_role": "Senior Finance Manager / Finance Director",
+    "tc_min": 120000,
+    "tc_max": 170000,
+    "working_model": "Hybrid",
+    "hqp_sponsor": false,
+    "english_first": true,
+    "notes": "Barcelona office. Tier and TC band are estimates — not verified",
+    "ats": {
+      "type": "workday",
+      "tenant": "adobe",
+      "wd_candidates": [
+        "wd5"
+      ],
+      "site_candidates": [
+        "external_experienced"
+      ],
+      "search_texts": [
+        "Barcelona",
+        "Spain"
+      ],
+      "note": "Few Spain postings, so search by location alone and let the title gate pick the finance roles"
+    }
+  },
+  {
+    "id": 85,
+    "name": "NVIDIA",
+    "sector": "Tech",
+    "tier": "A",
+    "target_role": "Senior Finance Manager / Finance Director",
+    "tc_min": 120000,
+    "tc_max": 170000,
+    "working_model": "Hybrid",
+    "hqp_sponsor": false,
+    "english_first": true,
+    "notes": "Added on request — Barcelona footprint not verified. Tier and TC band are estimates — not verified",
+    "ats": {
+      "type": "workday",
+      "tenant": "nvidia",
+      "wd_candidates": [
+        "wd5"
+      ],
+      "site_candidates": [
+        "NVIDIAExternalCareerSite"
+      ],
+      "search_texts": [
+        "Barcelona",
+        "Spain"
+      ],
+      "note": "Few Spain postings, so search by location alone and let the title gate pick the finance roles"
+    }
+  },
+  {
+    "id": 86,
+    "name": "Aily Labs",
+    "sector": "Tech/AI",
+    "tier": "Hidden",
+    "target_role": "Head of Finance",
+    "tc_min": 80000,
+    "tc_max": 115000,
+    "working_model": "Hybrid",
+    "hqp_sponsor": false,
+    "english_first": true,
+    "notes": "AI scale-up with Barcelona presence. Tier and TC band are estimates — not verified",
+    "ats": {
+      "type": "none",
+      "note": "No public endpoint found yet — covered through Adzuna and LinkedIn search"
+    }
+  },
+  {
+    "id": 87,
+    "name": "Multiverse Computing",
+    "sector": "Tech/AI",
+    "tier": "Hidden",
+    "target_role": "Head of Finance",
+    "tc_min": 80000,
+    "tc_max": 115000,
+    "working_model": "Hybrid",
+    "hqp_sponsor": false,
+    "english_first": true,
+    "notes": "Quantum / AI software, Barcelona office. Tier and TC band are estimates — not verified",
+    "ats": {
+      "type": "none",
+      "note": "No public endpoint found yet — covered through Adzuna and LinkedIn search"
+    }
+  },
+  {
+    "id": 88,
+    "name": "NeuralTrust",
+    "sector": "Tech/AI",
+    "tier": "C",
+    "target_role": "Head of Finance",
+    "tc_min": 80000,
+    "tc_max": 115000,
+    "working_model": "Hybrid",
+    "hqp_sponsor": false,
+    "english_first": true,
+    "notes": "Barcelona AI security start-up. Tier and TC band are estimates — not verified",
+    "ats": {
+      "type": "none",
+      "note": "No public endpoint found yet — covered through Adzuna and LinkedIn search"
+    }
+  },
+  {
+    "id": 89,
+    "name": "Codeway",
+    "sector": "Tech/AI",
+    "tier": "C",
+    "target_role": "Head of Finance",
+    "tc_min": 80000,
+    "tc_max": 115000,
+    "working_model": "Hybrid",
+    "hqp_sponsor": false,
+    "english_first": true,
+    "notes": "Barcelona office. Tier and TC band are estimates — not verified",
+    "ats": {
+      "type": "ashby",
+      "board": "codeway"
+    }
+  },
+  {
+    "id": 90,
+    "name": "Labhouse",
+    "sector": "Tech/AI",
+    "tier": "C",
+    "target_role": "Head of Finance",
+    "tc_min": 80000,
+    "tc_max": 115000,
+    "working_model": "Hybrid",
+    "hqp_sponsor": false,
+    "english_first": true,
+    "notes": "Barcelona app studio. Tier and TC band are estimates — not verified",
+    "ats": {
+      "type": "ashby",
+      "board": "labhouse"
+    }
+  },
+  {
+    "id": 91,
+    "name": "Murphy AI",
+    "sector": "Tech/AI",
+    "tier": "C",
+    "target_role": "Head of Finance",
+    "tc_min": 80000,
+    "tc_max": 115000,
+    "working_model": "Hybrid",
+    "hqp_sponsor": false,
+    "english_first": true,
+    "notes": "Barcelona AI start-up. Tier and TC band are estimates — not verified",
+    "ats": {
+      "type": "none",
+      "note": "No public endpoint found yet — covered through Adzuna and LinkedIn search"
+    }
+  },
+  {
+    "id": 92,
+    "name": "Merlin Properties",
+    "sector": "Real Estate/Data Centers",
+    "tier": "B",
+    "target_role": "Finance Director / Head of FP&A",
+    "tc_min": 100000,
+    "tc_max": 140000,
+    "working_model": "Hybrid",
+    "hqp_sponsor": false,
+    "english_first": true,
+    "notes": "Data-centre build-out. Tier and TC band are estimates — not verified",
+    "ats": {
+      "type": "none",
+      "note": "No public endpoint found yet — covered through Adzuna and LinkedIn search"
+    }
+  },
+  {
+    "id": 93,
+    "name": "Equinix",
+    "sector": "Data Centers",
+    "tier": "B",
+    "target_role": "Senior Finance Manager / Finance Director",
+    "tc_min": 100000,
+    "tc_max": 145000,
+    "working_model": "Hybrid",
+    "hqp_sponsor": false,
+    "english_first": true,
+    "notes": "Barcelona data centres. Tier and TC band are estimates — not verified",
+    "ats": {
+      "type": "workday",
+      "tenant": "equinix",
+      "wd_candidates": [
+        "wd1"
+      ],
+      "site_candidates": [
+        "External"
+      ],
+      "search_texts": [
+        "Barcelona",
+        "Spain"
+      ],
+      "note": "Few Spain postings, so search by location alone and let the title gate pick the finance roles"
+    }
+  },
+  {
+    "id": 94,
+    "name": "NTT DATA",
+    "sector": "IT Services",
+    "tier": "B",
+    "target_role": "Senior Finance Manager / Finance Director",
+    "tc_min": 90000,
+    "tc_max": 130000,
+    "working_model": "Hybrid",
+    "hqp_sponsor": false,
+    "english_first": true,
+    "notes": "Large Barcelona delivery hub. Tier and TC band are estimates — not verified",
+    "ats": {
+      "type": "none",
+      "note": "No public endpoint found yet — covered through Adzuna and LinkedIn search"
+    }
+  },
+  {
+    "id": 95,
+    "name": "SDG Group",
+    "sector": "Consulting/Data",
+    "tier": "C",
+    "target_role": "Senior Finance Manager / Finance Director",
+    "tc_min": 80000,
+    "tc_max": 115000,
+    "working_model": "Hybrid",
+    "hqp_sponsor": false,
+    "english_first": true,
+    "notes": "Barcelona office. Tier and TC band are estimates — not verified",
+    "aliases": [
+      "SDG"
+    ],
+    "ats": {
+      "type": "none",
+      "note": "No public endpoint found yet — covered through Adzuna and LinkedIn search"
+    }
+  },
+  {
+    "id": 96,
+    "name": "Octopus Energy",
+    "sector": "Energy",
+    "tier": "Hidden",
+    "target_role": "Senior Finance Manager / Finance Director",
+    "tc_min": 90000,
+    "tc_max": 130000,
+    "working_model": "Hybrid",
+    "hqp_sponsor": false,
+    "english_first": true,
+    "notes": "Spain operations. Tier and TC band are estimates — not verified",
+    "aliases": [
+      "Octopus Energy Group"
+    ],
+    "ats": {
+      "type": "lever",
+      "company": "octoenergy"
+    }
+  },
+  {
+    "id": 97,
+    "name": "Spacewell Energy / Dexma",
+    "sector": "Energy/SaaS",
+    "tier": "C",
+    "target_role": "Head of Finance",
+    "tc_min": 80000,
+    "tc_max": 115000,
+    "working_model": "Hybrid",
+    "hqp_sponsor": false,
+    "english_first": true,
+    "notes": "Barcelona energy-analytics SaaS. Tier and TC band are estimates — not verified",
+    "ats": {
+      "type": "none",
+      "note": "No public endpoint found yet — covered through Adzuna and LinkedIn search"
+    }
+  },
+  {
+    "id": 98,
+    "name": "MONEI",
+    "sector": "Fintech",
+    "tier": "C",
+    "target_role": "Head of Finance",
+    "tc_min": 80000,
+    "tc_max": 115000,
+    "working_model": "Hybrid",
+    "hqp_sponsor": false,
+    "english_first": true,
+    "notes": "Barcelona payments start-up. Tier and TC band are estimates — not verified",
+    "ats": {
+      "type": "ashby",
+      "board": "monei"
+    }
+  },
+  {
+    "id": 99,
+    "name": "Sateliot",
+    "sector": "Space/Deep Tech",
+    "tier": "C",
+    "target_role": "Head of Finance",
+    "tc_min": 80000,
+    "tc_max": 115000,
+    "working_model": "Hybrid",
+    "hqp_sponsor": false,
+    "english_first": true,
+    "notes": "Barcelona satellite IoT operator. Tier and TC band are estimates — not verified",
+    "ats": {
+      "type": "none",
+      "note": "No public endpoint found yet — covered through Adzuna and LinkedIn search"
+    }
   }
 ]
