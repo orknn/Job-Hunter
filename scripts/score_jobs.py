@@ -54,7 +54,12 @@ SCORING_PROMPT = """You are an expert career advisor evaluating job listings for
   - "SPANISH_LOCAL" or "SPANISH_LOCAL_NATIVE_REQ": score English-First Ops = D and apply_priority = SKIP, regardless of other dimensions.
   - "SPANISH_AD_TARGET_MNC" or "SPANISH_AD_ENGLISH_SIGNALS": evaluate carefully — recruiters often post English-first MNC roles in Spanish. If the description demands high Spanish proficiency for the role itself (not just the ad language), score English-First Ops = D and SKIP.
   - A Spanish ad asking for "nivel alto de inglés" usually means a Spanish-primary team wanting English as a secondary skill → that is a C at best for this candidate.
-- **Seniority hard rule (critical — check FIRST, before any other dimension):** The candidate targets Director / Head-level roles (8-10+ years). Before scoring anything else, scan the description for the stated experience requirement. If the highest years figure the ad asks for is below 8 — "+4 years", "4+ years", "3-5 years", "4-6 años de experiencia" all mean a minimum BELOW 8 — the job is "IRRELEVANT". This is absolute: no other strength (brand, location, stability, comp) can rescue it, and you must NOT grade it B/C "despite" the requirement. The same applies to Analyst / Junior / Associate / Specialist / Technician-level titles: a "Senior Financial Analyst" or "Controlling Specialist" is still below the bar. When the ad states no years and the title is ambiguous, judge the role's level from scope (team leadership, board exposure, group-wide remit = senior; "support the team", single-process ownership = junior → IRRELEVANT).
+- **Seniority (critical — check FIRST, before any other dimension):** The candidate targets Director / Head-level roles and also wants to see roles ONE rung below them. Give every job a "level":
+  - "TARGET" — Director / Head / VP / CFO-level: leads a finance function or team, group / regional / country-wide remit, typically 8+ years.
+  - "STEP_DOWN" — Senior Manager, Senior Finance Business Partner, Finance Manager or Lead with real ownership (partners with senior leadership, owns planning or forecasting for a business unit or region), typically 5-8 years. Grade these on the same rubric — do NOT mark them down merely for not being Director-level.
+  - Anything below that is "IRRELEVANT": Analyst / Specialist / Accountant / Associate-level work, a Financial / Business / Plant Controller without a group-wide remit, or any ad whose highest stated experience requirement is below 5 years ("+4 years", "3-5 years", "2-4 años de experiencia"). This is absolute: no other strength (brand, location, stability, comp) can rescue it, and you must NOT grade it B/C "despite" it.
+  - If the highest years figure the ad asks for is 5-7, the level is "STEP_DOWN" at most.
+  - Judge the level from the scope the description gives, not from the title alone: team leadership, board exposure, group-wide remit = senior; "support the team", single-process ownership = junior → IRRELEVANT.
 - **Target band ≠ job salary (critical):** target_match.tc_min/tc_max is the candidate's target compensation band for a DIRECTOR-level role at that company — it is NOT the salary of this specific job. NEVER copy it into tc_estimate. Estimate tc from the actual role level and description. If the description states a concrete salary figure (e.g. "€61,000"), anchor tc_estimate to that figure and score Total Comp accordingly.
 - **Coty:** Always cap at Tier B, TC ceiling €80-90k (despite being a global MNC)
 - **Location hard rule:** If the job location is NOT in Spain and NOT explicitly remote-from-Europe/EMEA, the overall_score is capped at C and apply_priority MUST be SKIP or WATCH — NEVER "APPLY NOW". US/India/Canada/UK-office-only roles cannot be A or B regardless of other merits.
@@ -66,7 +71,9 @@ SCORING_PROMPT = """You are an expert career advisor evaluating job listings for
 For each job below, return a JSON object with:
 - "job_id": the job ID
 - "overall_score": "A", "B", "C", or "D" (or "IRRELEVANT")
-- "dimension_scores": object with scores for each of the 10 dimensions
+- "level": "TARGET" or "STEP_DOWN" (omit when IRRELEVANT)
+- "irrelevant_reason": when overall_score is "IRRELEVANT", one short phrase saying why (e.g. "analyst-level scope", "asks for 3+ years", "not a finance role", "based in Poland"); otherwise ""
+- "dimension_scores": object with a score for each of the 10 dimensions, using EXACTLY these keys: "total_comp", "hqp_visa_ease", "english_first", "career_trajectory", "industry_pull", "scope", "working_model", "stability", "brand_value", "side_hustle"
 - "tc_estimate": estimated total comp range string (e.g. "€130-160k")
 - "fit_summary": 2-3 sentence explanation of why this job fits or doesn't fit Orkun
 - "hqp_risk": "LOW", "MEDIUM", or "HIGH" (risk of NOT getting HQP sponsorship)
@@ -137,11 +144,13 @@ def score_batch(jobs):
 
 
 # Deterministic seniority gate on the posting text. The prompt has the same
-# rule, but Haiku has ignored it when the role otherwise looked attractive:
+# rule, but the model has ignored it when the role otherwise looked attractive:
 # Puig's "+4 years of experience" scored B even with the line in context.
-# Parse "N(-M)(+) years/años of experience" mentions; if the ad states at
-# least one requirement and none reaches MIN_YEARS, it never reaches scoring.
-MIN_YEARS = 8
+# Parse "N(-M)(+) years/años of experience" mentions and act on the highest:
+#   below MIN_YEARS     → never reaches scoring
+#   below TARGET_YEARS  → scored, but can only land in the step-down lane
+MIN_YEARS = 5
+TARGET_YEARS = 8
 # High-precision on purpose: only "N years of experience"-shaped phrases and
 # "Experience: N years" headers count. Vaguer mentions ("5 years in FP&A")
 # fall through to the prompt rule rather than risk cutting a senior ad on a
@@ -155,12 +164,38 @@ _YEARS_REQ_RE = re.compile(
 )
 
 
-def years_requirement_below_bar(description):
-    """True when the ad names experience requirement(s) and all are < MIN_YEARS."""
+def stated_years(description):
+    """Highest experience requirement the ad states, or None when it states none."""
     mins = [int(m.group(1) or m.group(2))
             for m in _YEARS_REQ_RE.finditer(description or "")]
     mins = [n for n in mins if 0 < n <= 40]
-    return bool(mins) and max(mins) < MIN_YEARS
+    return max(mins) if mins else None
+
+
+def years_requirement_below_bar(description):
+    """True when the ad names experience requirement(s) and all are < MIN_YEARS."""
+    years = stated_years(description)
+    return years is not None and years < MIN_YEARS
+
+
+# The model names the ten dimensions however it likes from run to run ("Total
+# Comp", "english_first_ops"); the email and the gap report look them up by key.
+_DIMENSION_KEYS = {
+    "totalcomp": "total_comp", "hqpvisaease": "hqp_visa_ease",
+    "englishfirst": "english_first", "englishfirstops": "english_first",
+    "careertrajectory": "career_trajectory", "industrypull": "industry_pull",
+    "scope": "scope", "workingmodel": "working_model", "stability": "stability",
+    "brandvalue": "brand_value", "sidehustle": "side_hustle",
+    "sidehustlecompatibility": "side_hustle",
+}
+
+
+def normalize_dimension_keys(dims):
+    out = {}
+    for key, value in (dims or {}).items():
+        flat = re.sub(r"[^a-z]", "", str(key).lower())
+        out[_DIMENSION_KEYS.get(flat, key)] = value
+    return out
 
 
 def score_all_jobs():
@@ -172,7 +207,15 @@ def score_all_jobs():
 
     all_jobs = data.get("matched_jobs", []) + data.get("unmatched_jobs", [])
 
+    # Everything that does not make the digest, with the reason — so a wrong
+    # cut can be seen and argued with instead of vanishing.
+    rejected = [dict(d, stage="title gate") for d in data.get("dropped", [])]
+
     below_bar = [j for j in all_jobs if years_requirement_below_bar(j.get("description", ""))]
+    for j in below_bar:
+        rejected.append({"title": j["title"], "company": j["company"], "url": j.get("url", ""),
+                         "reason": f"asks for {stated_years(j.get('description', ''))} years",
+                         "stage": "years gate"})
     if below_bar:
         print(f"⏭  Seniority gate: {len(below_bar)} jobs ask for <{MIN_YEARS} years — skipped:")
         for j in below_bar:
@@ -210,13 +253,20 @@ def score_all_jobs():
     # Filter out IRRELEVANT
     relevant = [s for s in scored if s.get("overall_score") != "IRRELEVANT"]
     irrelevant = [s for s in scored if s.get("overall_score") == "IRRELEVANT"]
+    jobs_by_id = {str(j["id"]): j for j in all_jobs}
+    for score in irrelevant:
+        original = jobs_by_id.get(str(score.get("job_id", "")))
+        if original:
+            rejected.append({"title": original["title"], "company": original["company"],
+                             "url": original.get("url", ""),
+                             "reason": score.get("irrelevant_reason") or "no reason given",
+                             "stage": "scoring"})
 
     # Sort by score (A first)
     score_order = {"A": 0, "B": 1, "C": 2, "D": 3}
     relevant.sort(key=lambda x: score_order.get(x.get("overall_score", "D"), 4))
 
     # Merge scored data back with original job info
-    jobs_by_id = {j["id"]: j for j in all_jobs}
     enriched = []
     dropped_unmatched = 0
     for score in relevant:
@@ -238,6 +288,14 @@ def score_all_jobs():
         else:
             salary_source = "model_estimate"
 
+        score["dimension_scores"] = normalize_dimension_keys(score.get("dimension_scores"))
+        # The years gate outranks the model's own reading of the level.
+        years = stated_years(original.get("description", ""))
+        if score.get("level") not in ("TARGET", "STEP_DOWN"):
+            score["level"] = "TARGET"
+        if years is not None and years < TARGET_YEARS:
+            score["level"] = "STEP_DOWN"
+
         enriched.append({
             **original,
             "salary_source": salary_source,
@@ -253,6 +311,7 @@ def score_all_jobs():
         "total_relevant": len(relevant),
         "total_irrelevant": len(irrelevant),
         "scored_jobs": enriched,
+        "rejected": rejected,
     }
 
     # Save scored results
@@ -264,6 +323,9 @@ def score_all_jobs():
     print(f"✅ Scoring complete!")
     print(f"   Relevant jobs: {len(relevant)}")
     print(f"   Irrelevant filtered: {len(irrelevant)}")
+    for r in rejected:
+        if r["stage"] == "scoring":
+            print(f"     ✗ {r['title'][:55]} | {r['company']} — {r['reason']}")
 
     # Quick summary
     for grade in ["A", "B", "C", "D"]:

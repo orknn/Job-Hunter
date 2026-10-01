@@ -20,18 +20,12 @@ import time
 import requests
 from datetime import datetime
 
-# Reuse language classification + intern/seniority pre-screens from the Adzuna fetcher
 sys.path.insert(0, os.path.dirname(__file__))
-from fetch_jobs import classify_language_fit, is_excluded_title, is_below_seniority_bar  # noqa: E402
+from fetch_jobs import classify_language_fit  # noqa: E402
+from titles import is_finance_title, title_gate  # noqa: E402
 
 HEADERS = {"User-Agent": "Mozilla/5.0 (Job-Hunter weekly digest; personal use)"}
 TIMEOUT = 20
-
-# Finance-role title keywords (EN + ES). A job must match at least one.
-TITLE_KEYWORDS = [
-    "finance", "financial", "fp&a", "fpa", "controller", "controlling",
-    "cfo", "treasury", "financiero", "financiera", "finanzas", "contabilidad",
-]
 
 # Location must match at least one (lowercase substring match)
 LOCATION_KEYWORDS = [
@@ -257,7 +251,10 @@ def fetch_ashby(cfg, **_):
         return [
             {
                 "title": j.get("title", ""),
-                "location": j.get("location", "") or "",
+                # A posting open in "London" with Barcelona as a secondary
+                # location is still a Barcelona role.
+                "location": " / ".join(filter(None, [j.get("location", "")] + [
+                    x.get("location", "") for x in j.get("secondaryLocations") or []])),
                 "url": j.get("jobUrl", "") or j.get("applyUrl", ""),
                 "description": (j.get("descriptionPlain") or j.get("title") or "")[:2000],
                 "posted": j.get("publishedAt", ""),
@@ -595,11 +592,6 @@ def fetch_detail_description(url, ats_type):
 # Filtering & pipeline
 # ──────────────────────────────────────────────
 
-def is_finance_role(title):
-    t = title.lower()
-    return any(k in t for k in TITLE_KEYWORDS)
-
-
 def is_target_location(location):
     loc = (location or "").lower()
     # Workday MNCs sometimes list "Spain" only or multi-location strings
@@ -638,8 +630,10 @@ def load_companies():
         return json.load(f)
 
 
-def fetch_company(company):
-    """Fetch + filter jobs for a single company. Returns (jobs, status)."""
+def fetch_company(company, dropped=None):
+    """Fetch + filter jobs for a single company. Returns (jobs, status).
+
+    `dropped` collects finance-titled postings the title gate cut, for audit."""
     ats = company.get("ats")
     if not ats or ats.get("type") in (None, "none", "todo"):
         return [], "SKIPPED (no ATS config)"
@@ -655,10 +649,13 @@ def fetch_company(company):
     jobs = []
     enriched = 0
     for r in raw:
-        # Intern / junior + seniority pre-screen (same rules as the Adzuna fetcher)
-        if is_excluded_title(r["title"]) or is_below_seniority_bar(r["title"]):
-            continue
-        if not is_finance_role(r["title"]):
+        # Title gate (same rules as the Adzuna and LinkedIn fetchers)
+        reason = title_gate(r["title"])
+        if reason:
+            if (dropped is not None and is_finance_title(r["title"])
+                    and passes_location_filter(r["location"])):
+                dropped.append({"title": r["title"], "company": company["name"],
+                                "reason": reason, "source": f"ats:{ats['type']}"})
             continue
         if ats["type"] == "workday" and _MULTI_LOCATION_RE.match(r["location"] or ""):
             r["location"] = resolve_workday_locations(r["url"]) or r["location"]
@@ -723,10 +720,11 @@ def run_fetch():
         for j in data.get("matched_jobs", [])
     }
     added = 0
+    dropped = data.setdefault("dropped", [])
 
     print(f"🏢 Polling {len(companies)} target company career sites...\n")
     for company in companies:
-        jobs, status = fetch_company(company)
+        jobs, status = fetch_company(company, dropped)
         marker = "✅" if jobs else ("⚠️" if "FAILED" in status else "·")
         print(f"  {marker} {company['name']:35s} {status}")
         for j in jobs:

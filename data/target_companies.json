@@ -362,9 +362,13 @@
     "english_first": true,
     "notes": "$3B valuation, English-only, meaningful equity",
     "ats": {
-      "type": "none",
-      "note": "Likely Workable — needs workable adapter, v2"
-    }
+      "type": "ashby",
+      "board": "perk",
+      "note": "Rebranded to Perk; Ashby public job board"
+    },
+    "aliases": [
+      "Perk"
+    ]
   },
   {
     "id": 20,
@@ -802,14 +806,623 @@
     "tc_min": 90000,
     "tc_max": 130000,
     "working_model": "Hybrid",
-    "hqp_sponsor": true,
+    "hqp_sponsor": false,
     "english_first": true,
     "notes": "BCN office with EMEA finance roles. Tier and TC band are estimates — not verified",
     "ats": {
       "type": "workday",
       "tenant": "rockwellautomation",
-      "wd_candidates": ["wd1"],
-      "site_candidates": ["External_Rockwell_Automation"]
+      "wd_candidates": [
+        "wd1"
+      ],
+      "site_candidates": [
+        "External_Rockwell_Automation"
+      ]
+    }
+  },
+  {
+    "id": 45,
+    "name": "Preply",
+    "sector": "Tech/EdTech",
+    "tier": "Hidden",
+    "target_role": "VP Finance / Director Finance",
+    "tc_min": 110000,
+    "tc_max": 160000,
+    "working_model": "Hybrid",
+    "hqp_sponsor": false,
+    "english_first": true,
+    "notes": "BCN HQ scale-up. Tier and TC band are estimates — not verified",
+    "ats": {
+      "type": "ashby",
+      "board": "preply"
+    }
+  },
+  {
+    "id": 46,
+    "name": "N26",
+    "sector": "Fintech",
+    "tier": "Hidden",
+    "target_role": "Senior Finance Manager / Finance Director",
+    "tc_min": 90000,
+    "tc_max": 130000,
+    "working_model": "Hybrid",
+    "hqp_sponsor": false,
+    "english_first": true,
+    "notes": "BCN tech hub. Tier and TC band are estimates — not verified",
+    "ats": {
+      "type": "greenhouse",
+      "board": "n26"
+    }
+  },
+  {
+    "id": 47,
+    "name": "Scopely",
+    "sector": "Tech/Gaming",
+    "tier": "Hidden",
+    "target_role": "Senior Finance Manager / Finance Director",
+    "tc_min": 90000,
+    "tc_max": 130000,
+    "working_model": "Hybrid",
+    "hqp_sponsor": false,
+    "english_first": true,
+    "notes": "Large BCN studio. Tier and TC band are estimates — not verified",
+    "ats": {
+      "type": "greenhouse",
+      "board": "scopely"
+    }
+  },
+  {
+    "id": 48,
+    "name": "Abacum",
+    "sector": "Tech/SaaS",
+    "tier": "C",
+    "target_role": "Head of Finance",
+    "tc_min": 80000,
+    "tc_max": 110000,
+    "working_model": "Hybrid",
+    "hqp_sponsor": false,
+    "english_first": true,
+    "notes": "BCN FP&A-software scale-up. Tier and TC band are estimates — not verified",
+    "ats": {
+      "type": "ashby",
+      "board": "abacum"
+    }
+  },
+  {
+    "id": 49,
+    "name": "Amenitiz",
+    "sector": "Tech/SaaS",
+    "tier": "C",
+    "target_role": "Head of Finance",
+    "tc_min": 80000,
+    "tc_max": 110000,
+    "working_model": "Hybrid",
+    "hqp_sponsor": false,
+    "english_first": true,
+    "notes": "BCN HQ scale-up. Tier and TC band are estimates — not verified",
+    "ats": {
+      "type": "ashby",
+      "board": "amenitiz"
+    }
+  },
+  {
+    "id": 50,
+    "name": "Alan",
+    "sector": "Insurtech",
+    "tier": "C",
+    "target_role": "Senior Finance Manager / Finance Director",
+    "tc_min": 85000,
+    "tc_max": 120000,
+    "working_model": "Hybrid",
+    "hqp_sponsor": false,
+    "english_first": true,
+    "notes": "BCN office of French insurtech. Tier and TC band are estimates — not verified",
+    "ats": {
+      "type": "ashby",
+      "board": "alan"
+    }
+  },
+  {
+    "id": 51,
+    "name": "Qonto",
+    "sector": "Fintech",
+    "tier": "C",
+    "target_role": "Senior Finance Manager / Finance Director",
+    "tc_min": 85000,
+    "tc_max": 120000,
+    "working_model": "Hybrid",
+    "hqp_sponsor": false,
+    "english_first": true,
+    "notes": "BCN office. Tier and TC band are estimates — not verified",
+    "ats": {
+      "type": "lever",
+      "company": "qonto"
+    }
+  },
+  {
+    "id": 52,
+    "name": "Lodgify",
+    "sector": "Tech/SaaS",
+    "tier": "C",
+    "target_role": "Head of Finance",
+    "tc_min": 80000,
+    "tc_max": 110000,
+    "working_model": "Hybrid",
+    "hqp_sponsor": false,
+    "english_first": true,
+    "notes": "BCN HQ. Tier and TC band are estimates — not verified",
+    "ats": {
+      "type": "lever",
+      "company": "lodgify"
+    }
+  },
+  {
+    "id": 53,
+    "name": "New Relic",
+    "sector": "Tech/SaaS",
+    "tier": "Hidden",
+    "target_role": "Senior Finance Manager / Finance Director",
+    "tc_min": 100000,
+    "tc_max": 140000,
+    "working_model": "Hybrid",
+    "hqp_sponsor": false,
+    "english_first": true,
+    "notes": "BCN engineering hub. Tier and TC band are estimates — not verified",
+    "ats": {
+      "type": "greenhouse",
+      "board": "newrelic"
+    }
+  },
+  {
+    "id": 54,
+    "name": "Bitpanda",
+    "sector": "Fintech",
+    "tier": "C",
+    "target_role": "Senior Finance Manager / Finance Director",
+    "tc_min": 85000,
+    "tc_max": 120000,
+    "working_model": "Hybrid",
+    "hqp_sponsor": false,
+    "english_first": true,
+    "notes": "BCN hub. Tier and TC band are estimates — not verified",
+    "ats": {
+      "type": "greenhouse",
+      "board": "bitpanda"
+    }
+  },
+  {
+    "id": 55,
+    "name": "Alcon",
+    "sector": "Medical Devices",
+    "tier": "B",
+    "target_role": "Finance Director / Head of FP&A",
+    "tc_min": 100000,
+    "tc_max": 140000,
+    "working_model": "Hybrid",
+    "hqp_sponsor": false,
+    "english_first": true,
+    "notes": "Iberia offices in Cornellà / El Masnou. Tier and TC band are estimates — not verified",
+    "ats": {
+      "type": "workday",
+      "tenant": "alcon",
+      "wd_candidates": [
+        "wd5"
+      ],
+      "site_candidates": [
+        "careers_alcon"
+      ]
+    }
+  },
+  {
+    "id": 56,
+    "name": "Unilever",
+    "sector": "Consumer Goods",
+    "tier": "B",
+    "target_role": "Finance Director / Head of FP&A",
+    "tc_min": 100000,
+    "tc_max": 140000,
+    "working_model": "Hybrid",
+    "hqp_sponsor": false,
+    "english_first": true,
+    "notes": "Spain HQ in Viladecans. Tier and TC band are estimates — not verified",
+    "ats": {
+      "type": "workday",
+      "tenant": "unilever",
+      "wd_candidates": [
+        "wd3"
+      ],
+      "site_candidates": [
+        "Unilever_Experienced_Professionals"
+      ]
+    }
+  },
+  {
+    "id": 57,
+    "name": "Wolters Kluwer",
+    "sector": "Software/Information",
+    "tier": "B",
+    "target_role": "Senior Finance Manager / Finance Director",
+    "tc_min": 90000,
+    "tc_max": 130000,
+    "working_model": "Hybrid",
+    "hqp_sponsor": false,
+    "english_first": true,
+    "notes": "BCN office. Tier and TC band are estimates — not verified",
+    "ats": {
+      "type": "workday",
+      "tenant": "wk",
+      "wd_candidates": [
+        "wd3"
+      ],
+      "site_candidates": [
+        "External"
+      ]
+    }
+  },
+  {
+    "id": 58,
+    "name": "Criteo",
+    "sector": "Tech/AdTech",
+    "tier": "Hidden",
+    "target_role": "Senior Finance Manager / Finance Director",
+    "tc_min": 100000,
+    "tc_max": 140000,
+    "working_model": "Hybrid",
+    "hqp_sponsor": false,
+    "english_first": true,
+    "notes": "BCN hub. Tier and TC band are estimates — not verified",
+    "ats": {
+      "type": "workday",
+      "tenant": "criteo",
+      "wd_candidates": [
+        "wd3"
+      ],
+      "site_candidates": [
+        "Criteo_Career_Site"
+      ]
+    }
+  },
+  {
+    "id": 59,
+    "name": "ABB",
+    "sector": "Industrial",
+    "tier": "B",
+    "target_role": "Finance Director / Head of FP&A",
+    "tc_min": 95000,
+    "tc_max": 135000,
+    "working_model": "Hybrid",
+    "hqp_sponsor": false,
+    "english_first": true,
+    "notes": "Sant Quirze del Vallès site. Tier and TC band are estimates — not verified",
+    "ats": {
+      "type": "workday",
+      "tenant": "abb",
+      "wd_candidates": [
+        "wd3"
+      ],
+      "site_candidates": [
+        "External_Career_Page"
+      ]
+    }
+  },
+  {
+    "id": 60,
+    "name": "IQVIA",
+    "sector": "Pharma Services",
+    "tier": "B",
+    "target_role": "Senior Finance Manager / Finance Director",
+    "tc_min": 90000,
+    "tc_max": 130000,
+    "working_model": "Hybrid",
+    "hqp_sponsor": false,
+    "english_first": true,
+    "notes": "BCN office. Tier and TC band are estimates — not verified",
+    "ats": {
+      "type": "workday",
+      "tenant": "iqvia",
+      "wd_candidates": [
+        "wd1"
+      ],
+      "site_candidates": [
+        "IQVIA"
+      ]
+    }
+  },
+  {
+    "id": 61,
+    "name": "Deutsche Bank",
+    "sector": "Banking",
+    "tier": "B",
+    "target_role": "Senior Finance Manager / Finance Director",
+    "tc_min": 100000,
+    "tc_max": 150000,
+    "working_model": "Hybrid",
+    "hqp_sponsor": false,
+    "english_first": true,
+    "notes": "Spain operations. Tier and TC band are estimates — not verified",
+    "ats": {
+      "type": "workday",
+      "tenant": "db",
+      "wd_candidates": [
+        "wd3"
+      ],
+      "site_candidates": [
+        "DBWebsite"
+      ]
+    }
+  },
+  {
+    "id": 62,
+    "name": "Bacardi",
+    "sector": "Consumer Goods",
+    "tier": "B",
+    "target_role": "Finance Director / Head of FP&A",
+    "tc_min": 100000,
+    "tc_max": 140000,
+    "working_model": "Hybrid",
+    "hqp_sponsor": false,
+    "english_first": true,
+    "notes": "Regional finance hub. Tier and TC band are estimates — not verified",
+    "aliases": [
+      "Bacardi-Martini"
+    ],
+    "ats": {
+      "type": "none",
+      "note": "No public endpoint found yet — covered through Adzuna and LinkedIn search"
+    }
+  },
+  {
+    "id": 63,
+    "name": "Mango",
+    "sector": "Fashion/Retail",
+    "tier": "C",
+    "target_role": "Finance Director / Head of FP&A",
+    "tc_min": 90000,
+    "tc_max": 130000,
+    "working_model": "Hybrid",
+    "hqp_sponsor": false,
+    "english_first": false,
+    "notes": "HQ in Palau-solità i Plegamans. Tier and TC band are estimates — not verified",
+    "aliases": [
+      "Punto Fa"
+    ],
+    "ats": {
+      "type": "none",
+      "note": "No public endpoint found yet — covered through Adzuna and LinkedIn search"
+    }
+  },
+  {
+    "id": 64,
+    "name": "Lidl",
+    "sector": "Retail",
+    "tier": "C",
+    "target_role": "Finance Director / Head of FP&A",
+    "tc_min": 85000,
+    "tc_max": 120000,
+    "working_model": "Hybrid",
+    "hqp_sponsor": false,
+    "english_first": false,
+    "notes": "Spain HQ in Montcada i Reixac. Tier and TC band are estimates — not verified",
+    "aliases": [
+      "Lidl Supermercados"
+    ],
+    "ats": {
+      "type": "none",
+      "note": "No public endpoint found yet — covered through Adzuna and LinkedIn search"
+    }
+  },
+  {
+    "id": 65,
+    "name": "Allianz",
+    "sector": "Insurance",
+    "tier": "B",
+    "target_role": "Finance Director / Head of FP&A",
+    "tc_min": 100000,
+    "tc_max": 140000,
+    "working_model": "Hybrid",
+    "hqp_sponsor": false,
+    "english_first": true,
+    "notes": "Spain HQ in Barcelona. Tier and TC band are estimates — not verified",
+    "ats": {
+      "type": "none",
+      "note": "No public endpoint found yet — covered through Adzuna and LinkedIn search"
+    }
+  },
+  {
+    "id": 66,
+    "name": "Sage",
+    "sector": "Software",
+    "tier": "B",
+    "target_role": "Senior Finance Manager / Finance Director",
+    "tc_min": 90000,
+    "tc_max": 130000,
+    "working_model": "Hybrid",
+    "hqp_sponsor": false,
+    "english_first": true,
+    "notes": "Large BCN office. Tier and TC band are estimates — not verified",
+    "ats": {
+      "type": "none",
+      "note": "No public endpoint found yet — covered through Adzuna and LinkedIn search"
+    }
+  },
+  {
+    "id": 67,
+    "name": "Colt Technology Services",
+    "sector": "Telecom",
+    "tier": "B",
+    "target_role": "Senior Finance Manager / Finance Director",
+    "tc_min": 90000,
+    "tc_max": 130000,
+    "working_model": "Hybrid",
+    "hqp_sponsor": false,
+    "english_first": true,
+    "notes": "BCN shared-service centre incl. finance. Tier and TC band are estimates — not verified",
+    "ats": {
+      "type": "none",
+      "note": "No public endpoint found yet — covered through Adzuna and LinkedIn search"
+    }
+  },
+  {
+    "id": 68,
+    "name": "Vista / Cimpress",
+    "sector": "E-commerce",
+    "tier": "Hidden",
+    "target_role": "Senior Finance Manager / Finance Director",
+    "tc_min": 95000,
+    "tc_max": 135000,
+    "working_model": "Hybrid",
+    "hqp_sponsor": false,
+    "english_first": true,
+    "notes": "BCN hub. Tier and TC band are estimates — not verified",
+    "aliases": [
+      "Vistaprint"
+    ],
+    "ats": {
+      "type": "none",
+      "note": "No public endpoint found yet — covered through Adzuna and LinkedIn search"
+    }
+  },
+  {
+    "id": 69,
+    "name": "BASF",
+    "sector": "Chemicals",
+    "tier": "B",
+    "target_role": "Finance Director / Head of FP&A",
+    "tc_min": 100000,
+    "tc_max": 140000,
+    "working_model": "Hybrid",
+    "hqp_sponsor": false,
+    "english_first": true,
+    "notes": "Spain HQ in Barcelona. Tier and TC band are estimates — not verified",
+    "ats": {
+      "type": "none",
+      "note": "No public endpoint found yet — covered through Adzuna and LinkedIn search"
+    }
+  },
+  {
+    "id": 70,
+    "name": "Siemens",
+    "sector": "Industrial",
+    "tier": "B",
+    "target_role": "Finance Director / Head of FP&A",
+    "tc_min": 100000,
+    "tc_max": 140000,
+    "working_model": "Hybrid",
+    "hqp_sponsor": false,
+    "english_first": true,
+    "notes": "Cornellà site. Tier and TC band are estimates — not verified",
+    "ats": {
+      "type": "none",
+      "note": "No public endpoint found yet — covered through Adzuna and LinkedIn search"
+    }
+  },
+  {
+    "id": 71,
+    "name": "Roca",
+    "sector": "Industrial",
+    "tier": "C",
+    "target_role": "Finance Director / Head of FP&A",
+    "tc_min": 90000,
+    "tc_max": 130000,
+    "working_model": "Hybrid",
+    "hqp_sponsor": false,
+    "english_first": false,
+    "notes": "BCN HQ. Tier and TC band are estimates — not verified",
+    "aliases": [
+      "Roca Group",
+      "Roca Sanitario"
+    ],
+    "ats": {
+      "type": "none",
+      "note": "No public endpoint found yet — covered through Adzuna and LinkedIn search"
+    }
+  },
+  {
+    "id": 72,
+    "name": "Esteve",
+    "sector": "Pharma",
+    "tier": "B",
+    "target_role": "Finance Director / Head of FP&A",
+    "tc_min": 95000,
+    "tc_max": 135000,
+    "working_model": "Hybrid",
+    "hqp_sponsor": false,
+    "english_first": true,
+    "notes": "BCN HQ. Tier and TC band are estimates — not verified",
+    "aliases": [
+      "Esteve Pharmaceuticals"
+    ],
+    "ats": {
+      "type": "none",
+      "note": "No public endpoint found yet — covered through Adzuna and LinkedIn search"
+    }
+  },
+  {
+    "id": 73,
+    "name": "Lundbeck",
+    "sector": "Pharma",
+    "tier": "B",
+    "target_role": "Finance Director / Head of FP&A",
+    "tc_min": 95000,
+    "tc_max": 135000,
+    "working_model": "Hybrid",
+    "hqp_sponsor": false,
+    "english_first": true,
+    "notes": "Iberia office in Barcelona. Tier and TC band are estimates — not verified",
+    "ats": {
+      "type": "none",
+      "note": "No public endpoint found yet — covered through Adzuna and LinkedIn search"
+    }
+  },
+  {
+    "id": 74,
+    "name": "Chiesi",
+    "sector": "Pharma",
+    "tier": "B",
+    "target_role": "Finance Director / Head of FP&A",
+    "tc_min": 95000,
+    "tc_max": 135000,
+    "working_model": "Hybrid",
+    "hqp_sponsor": false,
+    "english_first": true,
+    "notes": "Spain HQ in Barcelona. Tier and TC band are estimates — not verified",
+    "ats": {
+      "type": "none",
+      "note": "No public endpoint found yet — covered through Adzuna and LinkedIn search"
+    }
+  },
+  {
+    "id": 75,
+    "name": "Skyscanner",
+    "sector": "Tech/Travel",
+    "tier": "Hidden",
+    "target_role": "Senior Finance Manager / Finance Director",
+    "tc_min": 100000,
+    "tc_max": 140000,
+    "working_model": "Hybrid",
+    "hqp_sponsor": false,
+    "english_first": true,
+    "notes": "BCN engineering hub. Tier and TC band are estimates — not verified",
+    "ats": {
+      "type": "none",
+      "note": "No public endpoint found yet — covered through Adzuna and LinkedIn search"
+    }
+  },
+  {
+    "id": 76,
+    "name": "King",
+    "sector": "Tech/Gaming",
+    "tier": "Hidden",
+    "target_role": "Senior Finance Manager / Finance Director",
+    "tc_min": 100000,
+    "tc_max": 140000,
+    "working_model": "Hybrid",
+    "hqp_sponsor": false,
+    "english_first": true,
+    "notes": "BCN studio. Tier and TC band are estimates — not verified",
+    "ats": {
+      "type": "none",
+      "note": "No public endpoint found yet — covered through Adzuna and LinkedIn search"
     }
   }
 ]

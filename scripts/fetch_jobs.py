@@ -8,7 +8,9 @@ import re
 import sys
 import json
 import requests
-from datetime import datetime, timedelta
+from datetime import datetime
+
+from titles import is_finance_title, title_gate, title_lane
 
 # ──────────────────────────────────────────────
 # Config
@@ -17,20 +19,26 @@ ADZUNA_APP_ID = os.environ.get("ADZUNA_APP_ID")
 ADZUNA_APP_KEY = os.environ.get("ADZUNA_APP_KEY")
 BASE_URL = "https://api.adzuna.com/v1/api/jobs/es/search"
 
-# Search queries — covers Director, FP&A, CFO, Controller titles
+# Search queries. Adzuna matches these words anywhere in the ad, so they are
+# only a recall net — titles.title_gate() decides what actually goes on.
 SEARCH_QUERIES = [
-    # English titles (MNC / English-first postings)
+    # Target lane — Director / Head / VP / CFO
     "Finance Director",
     "Head of FP&A",
     "FP&A Director",
     "CFO",
-    "Finance Controller",
     "Head of Finance",
-    "Senior Finance Manager",
     "VP Finance",
+    "Head of Controlling",
+    # Step-down lane — Senior Manager / Senior Finance Business Partner
+    "Senior Finance Manager",
+    "Senior Manager Finance",
+    "Finance Business Partner",
+    "FP&A Manager",
+    "Commercial Finance",
+    "Strategic Finance",
     # Spanish titles (Adzuna ES inventory is mostly Spanish-language)
     "Director Financiero",
-    "Controller Financiero",
     "Responsable Financiero",
     "Director de Finanzas",
 ]
@@ -44,59 +52,10 @@ LOCATION = "Barcelona"
 # Max results per query — Adzuna API hard limit is 50 per page
 RESULTS_PER_PAGE = 50
 
-# Intern / junior pre-screen — drop these titles before they ever reach scoring.
-# Word-boundary match so "intern" never swallows "International"/"Internal" finance roles.
-EXCLUDED_TITLE_KEYWORDS = [
-    "intern", "internship", "prácticas", "practicas", "becario", "becaria",
-    "trainee", "working student", "graduate program", "apprentice",
-]
-_EXCLUDED_TITLE_RE = re.compile(
-    r"\b(" + "|".join(re.escape(k) for k in EXCLUDED_TITLE_KEYWORDS) + r")\b",
-    re.IGNORECASE,
-)
-
-
-def is_excluded_title(title):
-    """True if the title is an intern/junior/trainee role we never want to surface."""
-    return bool(_EXCLUDED_TITLE_RE.search(title or ""))
-
-
-# Seniority pre-screen — the candidate targets Director / Head-level roles
-# (8-10+ years). Analyst/junior titles never reach scoring or the digest.
-# A senior marker in the title overrides (e.g. "Associate Director", "Head of
-# Financial Analysis" style titles survive).
-JUNIOR_TITLE_KEYWORDS = [
-    "analyst", "analista", "junior", "jr", "entry level", "graduate",
-    "associate", "asociado", "asociada", "auxiliar", "assistant", "asistente",
-]
-SENIOR_TITLE_OVERRIDES = [
-    "director", "directora", "head", "vp", "vice president", "chief", "cfo",
-    "responsable", "principal",
-]
-_JUNIOR_TITLE_RE = re.compile(
-    r"\b(" + "|".join(re.escape(k) for k in JUNIOR_TITLE_KEYWORDS) + r")\b",
-    re.IGNORECASE,
-)
-_SENIOR_OVERRIDE_RE = re.compile(
-    r"\b(" + "|".join(re.escape(k) for k in SENIOR_TITLE_OVERRIDES) + r")\b",
-    re.IGNORECASE,
-)
-# Unit-scoped controller roles (plant/factory/sales/site controller) are
-# operational mid-level positions, not the group/Director track — cut them
-# unless a senior marker overrides ("Director, Plant Controlling" survives).
-_UNIT_CONTROLLER_RE = re.compile(
-    r"\b(plant|factory|site|sales|store|warehouse|commercial)\s+(financial\s+|finance\s+)?controll?er\b"
-    r"|\bcontroller\s+(de\s+)?(planta|f[áa]brica|ventas|comercial)\b",
-    re.IGNORECASE,
-)
-
-
-def is_below_seniority_bar(title):
-    """True if the title reads junior/analyst/unit-level with no senior marker."""
-    t = title or ""
-    if _SENIOR_OVERRIDE_RE.search(t):
-        return False
-    return bool(_JUNIOR_TITLE_RE.search(t)) or bool(_UNIT_CONTROLLER_RE.search(t))
+# Safety valve only — the title gate, not this cap, is what keeps the pool
+# small. The old cap of 20 filled up from the first three queries and silently
+# discarded everything the other nine found.
+MAX_UNMATCHED = 80
 
 
 def load_target_companies():
@@ -137,43 +96,70 @@ def search_adzuna(query, page=1):
         return [], str(e)
 
 
+_COMPANY_SUFFIXES = [" s.a.", " s.l.", " sa", " sl", " inc.", " inc", " ltd", " gmbh",
+                     " iberia", " spain", " españa", " barcelona", " bcn", " europe",
+                     " emea", " global"]
+# First words too generic to identify a company on their own ("Deutsche Bank"
+# must not claim "Deutsche Telekom").
+_GENERIC_FIRST_WORDS = {"deutsche", "grupo", "banco", "the", "new", "wolters"}
+
+
 def normalize_company_name(name):
-    """Normalize company name for fuzzy matching."""
+    """Normalize company name for matching."""
     if not name:
         return ""
-    # Remove common suffixes and lowercase
     name = name.lower().strip()
-    for suffix in [" s.a.", " s.l.", " sa", " sl", " inc.", " inc", " ltd", " gmbh",
-                   " iberia", " spain", " españa", " barcelona", " bcn", " europe",
-                   " emea", " global"]:
-        name = name.replace(suffix, "")
+    for suffix in _COMPANY_SUFFIXES:
+        if name.endswith(suffix):
+            name = name[: -len(suffix)]
     return name.strip()
 
 
+def _has_words(needle, haystack):
+    """True when `needle` appears in `haystack` as whole words."""
+    return bool(needle) and bool(
+        re.search(r"(?<![a-z0-9])" + re.escape(needle) + r"(?![a-z0-9])", haystack))
+
+
+def _name_variants(target):
+    """Every name a target company may appear under in a job feed.
+
+    "SEAT / CUPRA" and "Vueling (IAG)" list two names in one field; `aliases`
+    carries the ones the name cannot express (TravelPerk now posts as "Perk").
+    """
+    raw = [target["name"]] + list(target.get("aliases", []))
+    variants = []
+    for name in raw:
+        for part in re.split(r"[/()]", name):
+            part = normalize_company_name(part)
+            if part:
+                variants.append(part)
+    return variants
+
+
 def match_company(job_company, target_companies):
-    """Check if a job's company matches any target company. Returns match or None."""
+    """Check if a job's company matches any target company. Returns match or None.
+
+    Whole-word matching: the earlier substring test let "ABB" claim "AbbVie"
+    and would have let "King" claim "Booking".
+    """
     if not job_company:
         return None
 
     job_normalized = normalize_company_name(job_company)
 
     for target in target_companies:
-        target_normalized = normalize_company_name(target["name"])
-
-        # Direct match
-        if target_normalized in job_normalized or job_normalized in target_normalized:
-            return target
-
-        # Check individual words for multi-word companies (e.g. "Coty" in "Coty Inc.")
-        target_words = target_normalized.split()
-        if len(target_words) >= 1:
-            primary_word = target_words[0]
-            if len(primary_word) >= 4 and primary_word in job_normalized:
+        for variant in _name_variants(target):
+            if _has_words(variant, job_normalized):
+                return target
+            # First word of a multi-word name ("Cellnex" for "Cellnex Telecom")
+            words = variant.split()
+            if (len(words) > 1 and len(words[0]) >= 4
+                    and words[0] not in _GENERIC_FIRST_WORDS
+                    and _has_words(words[0], job_normalized)):
                 return target
 
     return None
-
-
 
 
 # ──────────────────────────────────────────────
@@ -236,6 +222,7 @@ def fetch_all_jobs():
 
     all_jobs = {}  # Use dict to deduplicate by job ID
     unmatched_jobs = []  # Jobs that don't match target list but are relevant
+    dropped = []  # finance-titled postings the title gate cut, kept for audit
     seen_pairs = set()  # normalized (title, company) — kills Adzuna's same-job-many-ids dupes
 
     failed_queries = []
@@ -254,8 +241,16 @@ def fetch_all_jobs():
             title = job.get("title", "")
             company_name = job.get("company", {}).get("display_name", "Unknown")
 
-            # Intern / junior pre-screen — drop before scoring spend
-            if is_excluded_title(title) or is_below_seniority_bar(title):
+            # Title gate — applies to target-list companies too: a company
+            # match alone once sent "Senior Software Engineer" to scoring.
+            reason = title_gate(title)
+            if reason:
+                # Queries overlap, so the same posting is cut many times over.
+                pair = (title.lower().strip(), company_name.lower().strip())
+                if is_finance_title(title) and pair not in seen_pairs:
+                    seen_pairs.add(pair)
+                    dropped.append({"title": title, "company": company_name,
+                                    "reason": reason, "source": "adzuna"})
                 continue
 
             # Normalized pair dedupe (in addition to id-based) — Adzuna reposts
@@ -303,9 +298,13 @@ def fetch_all_jobs():
                 job_entry["target_match"] = None
                 unmatched_jobs.append(job_entry)
 
-    # Combine matched + unmatched (up to 20 unmatched)
+    # Combine matched + unmatched. Director/Head titles first, so that if the
+    # safety cap ever bites it cuts the step-down lane, not the target one.
     matched_list = list(all_jobs.values())
-    unmatched_list = unmatched_jobs[:20]
+    unmatched_jobs.sort(key=lambda j: title_lane(j["title"]) != "target")
+    unmatched_list = unmatched_jobs[:MAX_UNMATCHED]
+    if len(unmatched_jobs) > MAX_UNMATCHED:
+        print(f"⚠ {len(unmatched_jobs) - MAX_UNMATCHED} unmatched jobs over the cap were not scored")
 
     result = {
         "fetch_date": datetime.utcnow().isoformat(),
@@ -313,6 +312,7 @@ def fetch_all_jobs():
         "total_unmatched_sampled": len(unmatched_list),
         "matched_jobs": matched_list,
         "unmatched_jobs": unmatched_list,
+        "dropped": dropped,
     }
 
     # Save to output file
@@ -323,7 +323,8 @@ def fetch_all_jobs():
     print(f"\n{'='*50}")
     print(f"✅ Fetch complete!")
     print(f"   Matched jobs: {len(matched_list)}")
-    print(f"   Unmatched sample: {len(unmatched_list)}")
+    print(f"   Unmatched: {len(unmatched_list)}")
+    print(f"   Finance titles cut by the title gate: {len(dropped)}")
     print(f"   Saved to: {output_path}")
 
     # Fail the workflow loudly if every single query errored —

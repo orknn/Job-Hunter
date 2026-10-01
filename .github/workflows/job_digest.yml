@@ -4,12 +4,23 @@ on:
   schedule:
     # Every Saturday at 09:30 UTC = 11:30 CEST (Central European Summer Time)
     - cron: '30 9 * * 6'
-  workflow_dispatch:  # Manual trigger for testing
+  workflow_dispatch:  # Manual trigger
+    inputs:
+      dry_run:
+        description: 'Build the digest but send no mail and leave seen_jobs.json alone'
+        type: boolean
+        default: false
+
+# The run commits data/seen_jobs.json back so next week knows what was shown.
+permissions:
+  contents: write
 
 jobs:
   job-digest:
     runs-on: ubuntu-latest
-    
+    env:
+      DRY_RUN: ${{ inputs.dry_run && '1' || '0' }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -31,10 +42,16 @@ jobs:
       - name: 🏢 Fetch jobs from target company ATS boards
         run: python scripts/fetch_ats.py
 
+      - name: 🔗 Fetch jobs from LinkedIn search
+        run: python scripts/fetch_linkedin.py
+
       - name: 🤖 Score jobs
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: python scripts/score_jobs.py
+
+      - name: 🆕 Mark what earlier digests already showed
+        run: python scripts/track_seen.py
 
       - name: 🧭 Analyze positioning gaps
         env:
@@ -45,11 +62,23 @@ jobs:
         run: python scripts/generate_email.py
 
       - name: 📬 Send email via Gmail
+        if: env.DRY_RUN != '1'
         env:
           GMAIL_USERNAME: ${{ secrets.GMAIL_USERNAME }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
           RECIPIENT_EMAIL: ${{ secrets.GMAIL_USERNAME }}
         run: python scripts/send_email.py
+
+      - name: 💾 Remember shown postings
+        if: env.DRY_RUN != '1'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/seen_jobs.json
+          git diff --cached --quiet && exit 0
+          git commit -m "chore: remember postings shown in digest ${{ github.run_number }} [skip ci]"
+          git pull --rebase
+          git push
 
       - name: 📦 Archive results
         uses: actions/upload-artifact@v6

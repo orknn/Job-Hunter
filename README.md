@@ -7,19 +7,24 @@ Automated workflow that searches for **Finance Director / Head of FP&A** positio
 ```
 GitHub Actions (Every Saturday 11:30 CEST)
 │
-├── 1. FETCH — Adzuna API → search 8 finance queries in Barcelona
-│   └── Match against 42 target companies (Tier A/B/C + Hidden)
+├── 1. FETCH — three sources, one title gate (scripts/titles.py)
+│   ├── Adzuna API → finance queries in Barcelona
+│   ├── Career sites of the target companies (Workday, Greenhouse, Ashby, …)
+│   └── LinkedIn public guest search → companies nobody thought to list
 │
 ├── 2. SCORE — OpenAI (gpt-5.6-luna) → 10-dimension rubric scoring (A-D)
-│   └── Coty correction applied, HQP risk flagged
+│   ├── Two lanes: Director/Head-level targets, and one rung below
+│   │   (Senior Manager / Senior Finance Business Partner)
+│   └── Every cut is recorded with its reason
 │
-├── 3. ANALYZE GAPS — OpenAI (gpt-5.6-luna) → weekly positioning gap report
-│   └── Tallies repeat weak dimensions across B/C tier near-misses, suggests actions
+├── 3. TRACK — data/seen_jobs.json marks what earlier digests already showed
 │
-├── 4. GENERATE — Build premium dark-theme HTML email
-│   └── Gap report banner, then grouped by tier: A → B → C → D
+├── 4. ANALYZE GAPS — OpenAI (gpt-5.6-luna) → weekly positioning gap report
 │
-└── 5. SEND — Gmail SMTP → bicenorkun@gmail.com
+├── 5. GENERATE — dark-theme HTML email
+│   └── Tiers A → D, then the step-down lane, then the filtered-out audit list
+│
+└── 6. SEND — Gmail SMTP → bicenorkun@gmail.com
 ```
 
 ## Setup (One-time, ~10 minutes)
@@ -56,6 +61,8 @@ Click **"New repository secret"** for each:
 
 Go to: **[github.com/orknn/Job-Hunter/actions](https://github.com/orknn/Job-Hunter/actions)** → Click **"Weekly Job Digest"** → **"Run workflow"** → **"Run workflow"**
 
+Tick **dry_run** to build the digest without sending mail or touching `seen_jobs.json`; the result is in the run's artifact.
+
 ## Cost
 
 | Service | Monthly Cost |
@@ -71,14 +78,19 @@ Go to: **[github.com/orknn/Job-Hunter/actions](https://github.com/orknn/Job-Hunt
 Job Hunter/
 ├── .github/workflows/job_digest.yml    # GitHub Actions cron workflow
 ├── scripts/
+│   ├── titles.py                       # title gate shared by every fetcher
 │   ├── fetch_jobs.py                   # Adzuna API job fetcher
+│   ├── fetch_ats.py                    # target companies' own career sites
+│   ├── fetch_linkedin.py               # LinkedIn guest search (low volume, see its docstring)
 │   ├── llm.py                          # the one place this repo calls a model
 │   ├── score_jobs.py                   # rubric scorer (10 dimensions)
+│   ├── track_seen.py                   # remembers what earlier digests showed
 │   ├── analyze_gaps.py                 # Weekly positioning gap report (B/C tier near-misses)
 │   ├── generate_email.py               # Premium HTML email builder
 │   └── send_email.py                   # Gmail SMTP sender
 ├── data/
-│   └── target_companies.json           # 42 target companies with tiers
+│   ├── target_companies.json           # target companies with tiers and career-site configs
+│   └── seen_jobs.json                  # written by the workflow (hashes + dates only)
 ├── requirements.txt                    # Python dependencies
 └── README.md                           # This file
 ```

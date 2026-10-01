@@ -4,6 +4,7 @@ Dark theme, tier bazlı gruplandırma, detaylı kartlar.
 """
 
 import os
+import html
 import json
 from datetime import datetime
 
@@ -13,6 +14,12 @@ def load_scored_jobs():
     data_path = os.path.join(os.path.dirname(__file__), "..", "data", "scored_jobs.json")
     with open(data_path, "r", encoding="utf-8") as f:
         return json.load(f)
+
+
+def count_target_companies():
+    path = os.path.join(os.path.dirname(__file__), "..", "data", "target_companies.json")
+    with open(path, "r", encoding="utf-8") as f:
+        return len(json.load(f))
 
 
 def load_gap_report():
@@ -120,6 +127,50 @@ def format_salary(job):
     return f"💰 ~{tc} (tahmini)"
 
 
+def get_seen_badge(job):
+    """NEW for a posting no earlier digest showed, else when it first appeared."""
+    if job.get("is_new", True):
+        return '<span style="background:#a78bfa20;color:#a78bfa;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:700;">🆕 NEW</span>'
+    try:
+        first = datetime.fromisoformat(job["first_seen"]).strftime("%d %b")
+    except (KeyError, ValueError):
+        return ""
+    return f'<span style="color:#64748b;font-size:12px;">first seen {first}</span>'
+
+
+# The title gate cuts far more than the scorer does; past this many its rows
+# stop earning their space in a mail and stay in the run artifact instead.
+MAX_TITLE_GATE_ROWS = 30
+
+
+def build_rejected_html(rejected):
+    """Compact audit list of what was cut and why — a wrong cut should be visible."""
+    if not rejected:
+        return ""
+    judged = [r for r in rejected if r.get("stage") != "title gate"]
+    by_title = [r for r in rejected if r.get("stage") == "title gate"]
+    shown = judged + by_title[:MAX_TITLE_GATE_ROWS]
+
+    rows = ""
+    for r in shown:
+        title = html.escape(r.get("title", ""))
+        if r.get("url"):
+            title = f'<a href="{html.escape(r["url"])}" style="color:#94a3b8;text-decoration:none;">{title}</a>'
+        rows += (f'<div style="padding:4px 0;font-size:11px;color:#64748b;line-height:1.5;">'
+                 f'<span style="color:#94a3b8;">{title}</span> · {html.escape(r.get("company", ""))} '
+                 f'— <span style="color:#f59e0b;">{html.escape(r.get("reason", ""))}</span></div>')
+    hidden = len(rejected) - len(shown)
+    if hidden:
+        rows += (f'<div style="padding:4px 0;font-size:11px;color:#475569;">'
+                 f'…and {hidden} more cut on title alone (full list in the run artifact)</div>')
+    return f"""
+    <div style="margin-top:32px;background:#1a1a2e;border:1px solid #2d2d44;border-radius:12px;padding:16px 20px;">
+      <div style="font-size:13px;font-weight:700;color:#94a3b8;margin-bottom:8px;">✂️ Filtered out — {len(rejected)} finance postings</div>
+      {rows}
+    </div>
+    """
+
+
 def build_job_card(job):
     """Build HTML card for a single job."""
     scoring = job.get("scoring", {})
@@ -171,6 +222,7 @@ def build_job_card(job):
         <span style="color:#e2e8f0;font-weight:600;font-size:14px;">{salary_html}</span>
         {get_priority_badge(priority)}
         {get_hqp_badge(hqp_risk)}
+        {get_seen_badge(job)}
       </div>
 
       <div style="color:#cbd5e1;font-size:13px;line-height:1.6;margin-bottom:12px;padding:12px;background:#16162a;border-radius:8px;">
@@ -200,16 +252,43 @@ def generate_email():
     except Exception:
         date_display = score_date[:10]
 
-    # Group by overall score
+    # Two lanes: Director/Head-level targets, and the rung below them.
+    order = {"A": 0, "B": 1, "C": 2, "D": 3}
+
+    def lane_of(job):
+        return job.get("scoring", {}).get("level", "TARGET")
+
+    def sort_key(job):
+        # Within a grade, postings no earlier digest showed come first.
+        return (order.get(job.get("scoring", {}).get("overall_score"), 4),
+                not job.get("is_new", True))
+
+    target_jobs = sorted((j for j in jobs if lane_of(j) != "STEP_DOWN"), key=sort_key)
+    step_down_jobs = sorted((j for j in jobs if lane_of(j) == "STEP_DOWN"), key=sort_key)
+
     groups = {"A": [], "B": [], "C": [], "D": []}
-    for job in jobs:
+    for job in target_jobs:
         grade = job.get("scoring", {}).get("overall_score", "D")
         if grade in groups:
             groups[grade].append(job)
 
     # Count stats
     total = len(jobs)
+    new_count = len([j for j in jobs if j.get("is_new", True)])
     apply_now = len([j for j in jobs if j.get("scoring", {}).get("apply_priority") == "APPLY NOW"])
+    company_count = count_target_companies()
+
+    def section(label, color, section_jobs):
+        cards = "".join(build_job_card(j) for j in section_jobs)
+        return f"""
+        <div style="margin-top:32px;">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+            <h2 style="color:{color};font-size:18px;font-weight:700;margin:0;">{label}</h2>
+            <span style="background:{color}20;color:{color};padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;">{len(section_jobs)} position{'s' if len(section_jobs) != 1 else ''}</span>
+          </div>
+          {cards}
+        </div>
+        """
 
     # Build sections
     sections_html = ""
@@ -221,32 +300,24 @@ def generate_email():
     }
 
     for grade in ["A", "B", "C", "D"]:
-        grade_jobs = groups[grade]
-        if not grade_jobs:
-            continue
-        label, color = tier_labels[grade]
-        cards = "".join(build_job_card(j) for j in grade_jobs)
-        sections_html += f"""
-        <div style="margin-top:32px;">
-          <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
-            <h2 style="color:{color};font-size:18px;font-weight:700;margin:0;">{label}</h2>
-            <span style="background:{color}20;color:{color};padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;">{len(grade_jobs)} position{'s' if len(grade_jobs) != 1 else ''}</span>
-          </div>
-          {cards}
-        </div>
-        """
+        if groups[grade]:
+            sections_html += section(*tier_labels[grade], groups[grade])
+
+    if step_down_jobs:
+        sections_html += section("🪜 ONE RUNG BELOW — Senior Manager / Senior FBP",
+                                 "#a78bfa", step_down_jobs)
 
     # No jobs fallback
     if total == 0:
-        sections_html = """
+        sections_html = f"""
         <div style="text-align:center;padding:60px 20px;">
           <div style="font-size:48px;margin-bottom:16px;">🔍</div>
           <div style="color:#94a3b8;font-size:16px;">No matching positions found this week.</div>
-          <div style="color:#64748b;font-size:13px;margin-top:8px;">The search covered all 42 target companies. Keep watching — new roles get posted regularly.</div>
+          <div style="color:#64748b;font-size:13px;margin-top:8px;">The search covered all {company_count} target companies. Keep watching — new roles get posted regularly.</div>
         </div>
         """
 
-    html = f"""<!DOCTYPE html>
+    page = f"""<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
@@ -273,7 +344,11 @@ def generate_email():
           <div style="color:#64748b;font-size:11px;text-transform:uppercase;letter-spacing:1px;">Apply Now</div>
         </div>
         <div style="text-align:center;">
-          <div style="color:#3b82f6;font-size:28px;font-weight:800;">42</div>
+          <div style="color:#a78bfa;font-size:28px;font-weight:800;">{new_count}</div>
+          <div style="color:#64748b;font-size:11px;text-transform:uppercase;letter-spacing:1px;">New</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="color:#3b82f6;font-size:28px;font-weight:800;">{company_count}</div>
           <div style="color:#64748b;font-size:11px;text-transform:uppercase;letter-spacing:1px;">Companies</div>
         </div>
       </div>
@@ -285,12 +360,15 @@ def generate_email():
     <!-- Job Sections -->
     {sections_html}
 
+    <!-- Audit: what was cut and why -->
+    {build_rejected_html(data.get("rejected", []))}
+
     <!-- Footer -->
     <div style="text-align:center;padding:32px 20px;margin-top:32px;border-top:1px solid #2d2d44;">
       <div style="color:#64748b;font-size:12px;">
         Job Hunter · Automated weekly digest<br>
-        Powered by Adzuna + OpenAI<br>
-        <span style="color:#475569;">42 target companies · Barcelona & Remote</span>
+        Powered by Adzuna + company career sites + LinkedIn + OpenAI<br>
+        <span style="color:#475569;">{company_count} target companies · Barcelona & Remote</span>
       </div>
     </div>
 
@@ -301,12 +379,12 @@ def generate_email():
     # Save HTML
     output_path = os.path.join(os.path.dirname(__file__), "..", "data", "email_digest.html")
     with open(output_path, "w", encoding="utf-8") as f:
-        f.write(html)
+        f.write(page)
 
     print(f"✅ Email HTML generated: {output_path}")
-    print(f"   Total jobs: {total} | Apply Now: {apply_now}")
+    print(f"   Total jobs: {total} | New: {new_count} | Apply Now: {apply_now}")
 
-    return html, total
+    return page, total
 
 
 if __name__ == "__main__":
