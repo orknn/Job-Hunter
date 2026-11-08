@@ -171,6 +171,50 @@ def build_rejected_html(rejected):
     """
 
 
+def get_recruiter_badge(job):
+    """Agency-placed ad: the hiring company is unnamed, so brand, sponsorship
+    and stability in the scores are the model's guesses."""
+    if not job.get("via_recruiter"):
+        return ""
+    return ('<span style="background:#f59e0b20;color:#f59e0b;padding:3px 10px;border-radius:12px;'
+            'font-size:12px;font-weight:700;" title="Placed by an agency — employer not named">'
+            '🧭 via recruiter</span>')
+
+
+def get_also_on(job):
+    """Other sources that carried the same role, merged into this card."""
+    also = job.get("also_on") or []
+    if not also:
+        return ""
+    return f'<div style="font-size:11px;color:#64748b;margin-top:4px;">also on {html.escape(", ".join(also))}</div>'
+
+
+def build_coverage_html(health):
+    """What could not be searched this run. Silent gaps used to live in the CI
+    log only: Microsoft, Puig and Affinity failed every Saturday unnoticed."""
+    health = health or {}
+    lines = []
+    failed = health.get("ats_failed") or []
+    if failed:
+        lines.append(f'<span style="color:#f59e0b;">⚠️ Career site unreachable:</span> '
+                     f'{html.escape(", ".join(failed))}')
+    if health.get("linkedin_unavailable"):
+        lines.append('<span style="color:#f59e0b;">⚠️ LinkedIn search unavailable this run</span>')
+    unconfigured = health.get("ats_unconfigured") or []
+    if unconfigured:
+        lines.append(f'{len(unconfigured)} target companies have no career-site feed and are only '
+                     f'seen through Adzuna/LinkedIn')
+    if not lines:
+        return ""
+    rows = "".join(f'<div style="padding:3px 0;">{line}</div>' for line in lines)
+    return f"""
+    <div style="margin-top:24px;background:#1a1a2e;border:1px solid #2d2d44;border-radius:12px;padding:14px 20px;font-size:12px;color:#94a3b8;line-height:1.5;">
+      <div style="font-size:13px;font-weight:700;color:#94a3b8;margin-bottom:6px;">📡 Coverage this week</div>
+      {rows}
+    </div>
+    """
+
+
 def build_job_card(job):
     """Build HTML card for a single job."""
     scoring = job.get("scoring", {})
@@ -211,6 +255,7 @@ def build_job_card(job):
           <div style="font-size:18px;font-weight:700;color:#e2e8f0;margin-bottom:4px;">{job.get('company', 'Unknown')}</div>
           <div style="font-size:14px;color:#94a3b8;">{job.get('title', '')}</div>
           <div style="font-size:12px;color:#64748b;margin-top:4px;">📍 {job.get('location', 'Barcelona')}</div>
+          {get_also_on(job)}
         </div>
         <div style="text-align:right;">
           <div style="background:{score_color};color:#000;font-size:24px;font-weight:800;width:44px;height:44px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;">{score}</div>
@@ -223,6 +268,7 @@ def build_job_card(job):
         {get_priority_badge(priority)}
         {get_hqp_badge(hqp_risk)}
         {get_seen_badge(job)}
+        {get_recruiter_badge(job)}
       </div>
 
       <div style="color:#cbd5e1;font-size:13px;line-height:1.6;margin-bottom:12px;padding:12px;background:#16162a;border-radius:8px;">
@@ -362,6 +408,9 @@ def generate_email():
 
     <!-- Audit: what was cut and why -->
     {build_rejected_html(data.get("rejected", []))}
+
+    <!-- Coverage: sources that could not be searched -->
+    {build_coverage_html(data.get("source_health"))}
 
     <!-- Footer -->
     <div style="text-align:center;padding:32px 20px;margin-top:32px;border-top:1px solid #2d2d44;">

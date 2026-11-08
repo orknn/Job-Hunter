@@ -26,6 +26,7 @@ from titles import is_finance_title, title_gate  # noqa: E402
 
 HEADERS = {"User-Agent": "Mozilla/5.0 (Job-Hunter weekly digest; personal use)"}
 TIMEOUT = 20
+RETRY_PAUSE = 8
 
 # Location must match at least one (lowercase substring match)
 LOCATION_KEYWORDS = [
@@ -219,26 +220,79 @@ def fetch_amazon(cfg, **_):
         return None
 
 
+_MS_API = "https://apply.careers.microsoft.com/api/pcsx"
+
+
 def fetch_microsoft(cfg, **_):
-    url = ("https://gcsservices.careers.microsoft.com/search/api/v1/search"
-           "?q=finance&lc=Barcelona%2C%20Spain&l=en_us&pg=1&pgSz=20")
+    """Microsoft moved careers to apply.careers.microsoft.com (Eightfold) in
+    autumn 2026; the old gcsservices host stopped resolving and the adapter
+    reported ENDPOINT FAILED every week. Barcelona carries ~20 postings, so
+    take them all and let the title gate do the filtering — the search is
+    fuzzy enough that query=finance misses finance roles."""
+    out = []
     try:
-        r = requests.get(url, headers=HEADERS, timeout=TIMEOUT)
+        start = 0
+        while start < 200:
+            r = requests.get(f"{_MS_API}/search", headers=HEADERS, timeout=TIMEOUT, params={
+                "domain": "microsoft.com", "query": cfg.get("query", ""),
+                "location": cfg.get("location", "Barcelona"), "start": start})
+            if r.status_code != 200:
+                return out or None
+            data = r.json().get("data") or {}
+            positions = data.get("positions") or []
+            for p in positions:
+                posted = p.get("postedTs")
+                out.append({
+                    "title": p.get("name", ""),
+                    "location": " / ".join(p.get("locations") or []),
+                    "url": f"https://apply.careers.microsoft.com/careers/job/{p.get('id', '')}",
+                    "description": p.get("name", ""),  # list has none; enrichment fetches it
+                    "posted": datetime.utcfromtimestamp(posted).date().isoformat() if posted else "",
+                })
+            start += len(positions)
+            if not positions or start >= (data.get("count") or 0):
+                break
+    except (requests.exceptions.RequestException, ValueError):
+        return out or None
+    return out
+
+
+def _microsoft_description(url):
+    m = re.search(r"/careers/job/(\d+)", url)
+    if not m:
+        return ""
+    r = requests.get(f"{_MS_API}/position_details", headers=HEADERS, timeout=TIMEOUT,
+                     params={"position_id": m.group(1), "domain": "microsoft.com", "hl": "en"})
+    if r.status_code != 200:
+        return ""
+    return _strip_tags((r.json().get("data") or {}).get("jobDescription") or "")
+
+
+_JOBVITE_ROW = re.compile(
+    r'class="jv-job-list-name">\s*<a href="([^"]+)">(.*?)</a>\s*</td>\s*'
+    r'<td class="jv-job-list-location">(.*?)</td>', re.S)
+
+
+def fetch_jobvite(cfg, **_):
+    """Jobvite public board (jobs.jobvite.com/<company>/jobs): one server-rendered
+    table of every opening, no pagination at this size."""
+    company = cfg["company"]
+    try:
+        r = requests.get(f"https://jobs.jobvite.com/{company}/jobs", headers=HEADERS, timeout=TIMEOUT)
         if r.status_code != 200:
             return None
-        jobs = (((r.json().get("operationResult") or {}).get("result") or {}).get("jobs")) or []
-        return [
-            {
-                "title": j.get("title", ""),
-                "location": ", ".join(j.get("properties", {}).get("locations", []) or []),
-                "url": f"https://jobs.careers.microsoft.com/global/en/job/{j.get('jobId','')}",
-                "description": (j.get("properties", {}).get("description") or "")[:2000],
-                "posted": j.get("postingDate", ""),
-            }
-            for j in jobs
-        ]
     except requests.exceptions.RequestException:
         return None
+    return [
+        {
+            "title": _strip_tags(title),
+            "location": re.sub(r"\s*,\s*", ", ", " ".join(_strip_tags(loc).split())),
+            "url": f"https://jobs.jobvite.com{html.unescape(path)}",
+            "description": _strip_tags(title),
+            "posted": "",
+        }
+        for path, title, loc in _JOBVITE_ROW.findall(r.text)
+    ]
 
 
 def fetch_ashby(cfg, **_):
@@ -517,6 +571,7 @@ ADAPTERS = {
     "icims": fetch_icims,
     "rss": fetch_rss,
     "workable": fetch_workable,
+    "jobvite": fetch_jobvite,
 }
 
 
@@ -576,9 +631,14 @@ def fetch_detail_description(url, ats_type):
     try:
         if ats_type == "workday" and _WORKDAY_URL.match(url):
             return _strip_tags(_workday_posting_info(url).get("jobDescription", ""))
+        if ats_type == "microsoft":
+            return _microsoft_description(url)
         r = requests.get(url, headers=HEADERS, timeout=TIMEOUT)
         if r.status_code != 200:
             return ""
+        if ats_type == "jobvite":
+            i = r.text.find('class="jv-job-detail-description"')
+            return _strip_tags(r.text[i:i + 40000])[:3000] if i >= 0 else ""
         m = _CSB_DESC.search(r.text)
         if m:
             return _strip_tags(m.group(1))
@@ -643,6 +703,13 @@ def fetch_company(company, dropped=None):
         return [], f"SKIPPED (unknown type {ats['type']})"
 
     raw = adapter(ats)
+    if raw is None:
+        # One retry after a pause, for transient timeouts and 5xx. It does not
+        # help a deliberate block: Puig's board sits behind Cloudflare bot
+        # protection and answers 403 to automated clients — that is the site's
+        # call, it is not worked around, and the digest's coverage note says so.
+        time.sleep(RETRY_PAUSE)
+        raw = adapter(ats)
     if raw is None:
         return [], "ENDPOINT FAILED"
 
@@ -721,10 +788,19 @@ def run_fetch():
     }
     added = 0
     dropped = data.setdefault("dropped", [])
+    # What could not be searched this run, for the digest's coverage note — a
+    # board that fails every week used to be visible only in the CI log.
+    health = data.setdefault("source_health", {})
+    health["ats_failed"] = []
+    health["ats_unconfigured"] = []
 
     print(f"🏢 Polling {len(companies)} target company career sites...\n")
     for company in companies:
         jobs, status = fetch_company(company, dropped)
+        if "FAILED" in status:
+            health["ats_failed"].append(company["name"])
+        elif status.startswith("SKIPPED"):
+            health["ats_unconfigured"].append(company["name"])
         marker = "✅" if jobs else ("⚠️" if "FAILED" in status else "·")
         print(f"  {marker} {company['name']:35s} {status}")
         for j in jobs:

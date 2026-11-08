@@ -124,7 +124,7 @@
     "notes": "Strong RSU, English-only, FP&A maturity",
     "ats": {
       "type": "microsoft",
-      "note": "SSL cert mismatch from some networks — degrades to ENDPOINT FAILED gracefully"
+      "note": "apply.careers.microsoft.com pcsx API since Nov 2026 (old gcsservices host dead)"
     }
   },
   {
@@ -194,7 +194,7 @@
     "ats": {
       "type": "successfactors",
       "host": "jobs.puig.com",
-      "note": "SF Career Site Builder — server-rendered /search/"
+      "note": "SF Career Site Builder — server-rendered /search/. Behind Cloudflare bot protection since autumn 2026: 403 to automated clients, shows as ENDPOINT FAILED. Not worked around."
     }
   },
   {
@@ -402,7 +402,10 @@
     "ats": {
       "type": "none",
       "note": "Custom careers portal — v2"
-    }
+    },
+    "aliases": [
+      "Delivery Hero"
+    ]
   },
   {
     "id": 22,
@@ -520,8 +523,9 @@
     "english_first": false,
     "notes": "BCN HQ, mid-size, possibly Spanish-leaning",
     "ats": {
-      "type": "greenhouse",
-      "board": "affinity"
+      "type": "jobvite",
+      "company": "affinitypetcare",
+      "note": "Moved off Greenhouse (board 404) to Jobvite by Nov 2026"
     }
   },
   {

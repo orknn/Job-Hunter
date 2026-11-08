@@ -9,6 +9,8 @@ import sys
 import json
 
 import llm
+from dedupe import dedupe_jobs, is_recruiter
+from fetch_jobs import load_target_companies
 
 # ──────────────────────────────────────────────
 # Config
@@ -198,6 +200,26 @@ def normalize_dimension_keys(dims):
     return out
 
 
+def calibrate_priority(score):
+    """Keep "APPLY NOW" for the roles that earn it.
+
+    The model hands out APPLY NOW freely: 21 of 32 cards on 7 Nov 2026, 18 of
+    them grade B, most one rung below target. A label on two thirds of the
+    digest stops meaning anything. APPLY NOW stays only on grade A, or grade B
+    at target level without a high sponsorship risk; anything else the model
+    marked APPLY NOW becomes WATCH. Never upgrades.
+    """
+    if score.get("apply_priority") != "APPLY NOW":
+        return score
+    grade = score.get("overall_score")
+    earned = grade == "A" or (grade == "B" and score.get("level") == "TARGET"
+                              and score.get("hqp_risk") != "HIGH")
+    if not earned:
+        score["apply_priority"] = "WATCH"
+        score["priority_calibrated"] = True
+    return score
+
+
 def score_all_jobs():
     """Score all fetched jobs against the rubric."""
     if not llm.api_key_present():
@@ -206,6 +228,12 @@ def score_all_jobs():
     data = load_fetched_jobs()
 
     all_jobs = data.get("matched_jobs", []) + data.get("unmatched_jobs", [])
+
+    # One card per role: the same posting arrives from Adzuna, the company's
+    # board and LinkedIn under three spellings of the company.
+    all_jobs, repeats = dedupe_jobs(all_jobs, load_target_companies())
+    if repeats:
+        print(f"🔁 Merged {repeats} cross-source duplicate(s) — {len(all_jobs)} unique postings")
 
     # Everything that does not make the digest, with the reason — so a wrong
     # cut can be seen and argued with instead of vanishing.
@@ -295,10 +323,12 @@ def score_all_jobs():
             score["level"] = "TARGET"
         if years is not None and years < TARGET_YEARS:
             score["level"] = "STEP_DOWN"
+        calibrate_priority(score)
 
         enriched.append({
             **original,
             "salary_source": salary_source,
+            "via_recruiter": is_recruiter(original),
             "scoring": score,
         })
 
@@ -312,6 +342,8 @@ def score_all_jobs():
         "total_irrelevant": len(irrelevant),
         "scored_jobs": enriched,
         "rejected": rejected,
+        "source_health": data.get("source_health", {}),
+        "duplicates_merged": repeats,
     }
 
     # Save scored results

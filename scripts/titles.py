@@ -39,6 +39,15 @@ _OTHER_FUNCTION_RE = re.compile(
     re.IGNORECASE,
 )
 
+# Specialist tracks the scorer rejects every time as "internal-audit / tax
+# compliance specialization" — cutting them here saves the scoring call. Checked
+# before the top-marker override: "Head of Internal Audit" is still audit.
+# "Global Tax Director" is not caught; a tax leadership role stays the scorer's call.
+_SPECIALIST_TRACK_RE = re.compile(
+    r"\b(internal\s+audit|audit\s+manager|tax\s+compliance|vat|indirect\s+tax)\b",
+    re.IGNORECASE,
+)
+
 _TOP_RE = re.compile(
     r"\b(director|directora|head|vp|vice\s+president|chief|cfo)\b", re.IGNORECASE)
 
@@ -77,6 +86,8 @@ def title_gate(title):
         return "not a finance title"
     if _OTHER_FUNCTION_RE.search(t):
         return "other function"
+    if _SPECIALIST_TRACK_RE.search(t):
+        return "audit/tax-compliance specialization"
     top = bool(_TOP_RE.search(t))
     if top:
         return None

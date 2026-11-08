@@ -212,6 +212,18 @@ def in_barcelona_area(location):
     return any(k in loc for k in _BCN_AREA)
 
 
+def mark_unavailable(reason):
+    """Record in fetched_jobs.json that LinkedIn could not be searched this run."""
+    data_path = os.path.join(os.path.dirname(__file__), "..", "data", "fetched_jobs.json")
+    if not os.path.exists(data_path):
+        return
+    with open(data_path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    data.setdefault("source_health", {})["linkedin_unavailable"] = reason
+    with open(data_path, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+
+
 def run():
     data_path = os.path.join(os.path.dirname(__file__), "..", "data", "fetched_jobs.json")
     if os.path.exists(data_path):
@@ -293,5 +305,6 @@ if __name__ == "__main__":
     try:
         run()
     except LinkedInError as error:
-        # Never fail the digest over this source.
+        # Never fail the digest over this source — but say so in the mail.
         print(f"⚠️ LinkedIn unavailable this run ({error}) — continuing without it")
+        mark_unavailable(str(error))

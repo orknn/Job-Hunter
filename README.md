@@ -5,7 +5,7 @@ Automated workflow that searches for **Finance Director / Head of FP&A** positio
 ## Architecture
 
 ```
-GitHub Actions (Every Saturday 11:30 CEST)
+GitHub Actions (Every Saturday, scheduled 06:17 UTC)
 │
 ├── 1. FETCH — three sources, one title gate (scripts/titles.py)
 │   ├── Adzuna API → finance queries in Barcelona
@@ -13,6 +13,9 @@ GitHub Actions (Every Saturday 11:30 CEST)
 │   └── LinkedIn public guest search → companies nobody thought to list
 │
 ├── 2. SCORE — OpenAI (gpt-6.1-terra) → 10-dimension rubric scoring (A-D)
+│   ├── Cross-source duplicates merged first (scripts/dedupe.py)
+│   ├── APPLY NOW kept for grade A, or grade B at target level without high visa risk
+│   ├── Agency-placed ads flagged "via recruiter"
 │   ├── Two lanes: Director/Head-level targets, and one rung below
 │   │   (Senior Manager / Senior Finance Business Partner)
 │   └── Every cut is recorded with its reason
@@ -22,7 +25,8 @@ GitHub Actions (Every Saturday 11:30 CEST)
 ├── 4. ANALYZE GAPS — OpenAI (gpt-6.1-terra) → weekly positioning gap report
 │
 ├── 5. GENERATE — dark-theme HTML email
-│   └── Tiers A → D, then the step-down lane, then the filtered-out audit list
+│   └── Tiers A → D, then the step-down lane, the filtered-out audit list,
+│       and a coverage note naming any source that could not be searched
 │
 └── 6. SEND — Gmail SMTP → bicenorkun@gmail.com
 ```
@@ -83,6 +87,7 @@ Job Hunter/
 │   ├── fetch_ats.py                    # target companies' own career sites
 │   ├── fetch_linkedin.py               # LinkedIn guest search (low volume, see its docstring)
 │   ├── llm.py                          # the one place this repo calls a model
+│   ├── dedupe.py                       # one card per role across sources; recruiter flag
 │   ├── score_jobs.py                   # rubric scorer (10 dimensions)
 │   ├── track_seen.py                   # remembers what earlier digests showed
 │   ├── analyze_gaps.py                 # Weekly positioning gap report (B/C tier near-misses)
