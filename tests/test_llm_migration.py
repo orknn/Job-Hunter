@@ -48,7 +48,7 @@ class LlmClientTests(unittest.TestCase):
             llm.call_json("sys", "user", max_tokens=1024)
 
         kwargs = client.chat.completions.create.call_args.kwargs
-        self.assertEqual(kwargs["model"], "gpt-5.6-luna")
+        self.assertEqual(kwargs["model"], "gpt-6.1-terra")
         self.assertEqual(kwargs["max_completion_tokens"], 1024)
         self.assertNotIn("max_tokens", kwargs)
         self.assertNotIn("temperature", kwargs)
@@ -85,7 +85,7 @@ class LlmClientTests(unittest.TestCase):
         """Scripts import this module for MODEL alone."""
         with patch.dict(os.environ, {}, clear=True):
             self.assertFalse(llm.api_key_present())
-            self.assertEqual(llm.MODEL, "gpt-5.6-luna")
+            self.assertEqual(llm.MODEL, "gpt-6.1-terra")
 
 
 class ScoringCallTests(unittest.TestCase):

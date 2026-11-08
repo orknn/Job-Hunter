@@ -25,11 +25,12 @@ import os
 
 from openai import OpenAI
 
-# Same tier the bulletin's daily edition runs on: cheap, and this is scoring
-# against a rubric rather than open-ended writing. Named once, here, so a model
+# Upgraded from gpt-5.6-luna on 8 Nov 2026 for sharper rubric scoring — the
+# same model stock-analyzer routes everything to. Roughly 5x luna's per-token
+# price, still around a euro a month at this volume. Named once, here, so a model
 # retirement is a one-line change instead of a hunt — the last one took the
 # digest down until someone noticed (commit ccbcc2a).
-MODEL = "gpt-5.6-luna"
+MODEL = "gpt-6.1-terra"
 
 SEED = 7
 

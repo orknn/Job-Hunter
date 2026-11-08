@@ -12,14 +12,14 @@ GitHub Actions (Every Saturday 11:30 CEST)
 │   ├── Career sites of the target companies (Workday, Greenhouse, Ashby, …)
 │   └── LinkedIn public guest search → companies nobody thought to list
 │
-├── 2. SCORE — OpenAI (gpt-5.6-luna) → 10-dimension rubric scoring (A-D)
+├── 2. SCORE — OpenAI (gpt-6.1-terra) → 10-dimension rubric scoring (A-D)
 │   ├── Two lanes: Director/Head-level targets, and one rung below
 │   │   (Senior Manager / Senior Finance Business Partner)
 │   └── Every cut is recorded with its reason
 │
 ├── 3. TRACK — data/seen_jobs.json marks what earlier digests already showed
 │
-├── 4. ANALYZE GAPS — OpenAI (gpt-5.6-luna) → weekly positioning gap report
+├── 4. ANALYZE GAPS — OpenAI (gpt-6.1-terra) → weekly positioning gap report
 │
 ├── 5. GENERATE — dark-theme HTML email
 │   └── Tiers A → D, then the step-down lane, then the filtered-out audit list
@@ -68,9 +68,9 @@ Tick **dry_run** to build the digest without sending mail or touching `seen_jobs
 | Service | Monthly Cost |
 |---|---|
 | Adzuna API | **€0** (free tier: 2,500 calls/month) |
-| OpenAI (gpt-5.6-luna) | **~€0.20** (4 runs × ~50 jobs, scoring + gap analysis) |
+| OpenAI (gpt-6.1-terra) | **~€1** (4 runs × ~50 jobs, scoring + gap analysis) |
 | Gmail SMTP | **€0** |
-| **Total** | **< €0.50/month** |
+| **Total** | **~€1/month** |
 
 ## Files
 
