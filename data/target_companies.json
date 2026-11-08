@@ -329,7 +329,7 @@
     "notes": "English-only, Nestle peer profile",
     "ats": {
       "type": "none",
-      "note": "Custom (Phenom) careers site — v2"
+      "note": "Classic SuccessFactors (career2.successfactors.eu, company=reckittb01) behind careers.reckitt.com — needs a classic-SF adapter"
     }
   },
   {
@@ -506,8 +506,9 @@
     "english_first": true,
     "notes": "BCN-Madrid hybrid, growth path to CFO",
     "ats": {
-      "type": "none",
-      "note": "Likely Teamtailor — v2"
+      "type": "rss",
+      "url": "https://seedtag.teamtailor.com/jobs.rss",
+      "note": "Teamtailor — found 8 Nov 2026"
     }
   },
   {
@@ -691,8 +692,10 @@
     "english_first": true,
     "notes": "BCN offices; SSC in Poland so senior commercial finance only",
     "ats": {
-      "type": "none",
-      "note": "Custom (Phenom) - v2"
+      "type": "jibe",
+      "host": "www.pepsicojobs.com",
+      "location": "Spain",
+      "note": "iCIMS Talent Cloud (Jibe) /api/jobs — found 8 Nov 2026; Spanish office is Cornellà"
     }
   },
   {
@@ -1212,7 +1215,7 @@
     ],
     "ats": {
       "type": "none",
-      "note": "No public endpoint found yet — covered through Adzuna and LinkedIn search"
+      "note": "Classic SuccessFactors (career5.successfactors.eu, company=lidlstiftuP2) — needs a classic-SF adapter"
     }
   },
   {
@@ -1229,7 +1232,7 @@
     "notes": "Spain HQ in Barcelona. Tier and TC band are estimates — not verified",
     "ats": {
       "type": "none",
-      "note": "No public endpoint found yet — covered through Adzuna and LinkedIn search"
+      "note": "Phenom (careers.allianz.com) — no adapter yet; covered through Adzuna and LinkedIn search"
     }
   },
   {
@@ -1426,7 +1429,7 @@
     "notes": "BCN studio. Tier and TC band are estimates — not verified",
     "ats": {
       "type": "none",
-      "note": "No public endpoint found yet — covered through Adzuna and LinkedIn search"
+      "note": "Phenom + Eightfold (careers.king.com / activision.eightfold.ai) — no adapter yet; covered through Adzuna and LinkedIn search"
     }
   },
   {
@@ -1645,8 +1648,9 @@
     "english_first": true,
     "notes": "AI scale-up with Barcelona presence. Tier and TC band are estimates — not verified",
     "ats": {
-      "type": "none",
-      "note": "No public endpoint found yet — covered through Adzuna and LinkedIn search"
+      "type": "personio",
+      "company": "ailylabs",
+      "note": "Personio XML feed — found 8 Nov 2026"
     }
   },
   {
@@ -1662,8 +1666,9 @@
     "english_first": true,
     "notes": "Quantum / AI software, Barcelona office. Tier and TC band are estimates — not verified",
     "ats": {
-      "type": "none",
-      "note": "No public endpoint found yet — covered through Adzuna and LinkedIn search"
+      "type": "rss",
+      "url": "https://multiversecomputing.teamtailor.com/jobs.rss",
+      "note": "Teamtailor — found 8 Nov 2026 (ashby 'multiverse' is the UK edtech, not this company)"
     }
   },
   {
@@ -1730,8 +1735,9 @@
     "english_first": true,
     "notes": "Barcelona AI start-up. Tier and TC band are estimates — not verified",
     "ats": {
-      "type": "none",
-      "note": "No public endpoint found yet — covered through Adzuna and LinkedIn search"
+      "type": "rss",
+      "url": "https://murphy.teamtailor.com/jobs.rss",
+      "note": "Teamtailor — found 8 Nov 2026; HQ Barcelona"
     }
   },
   {
@@ -1793,7 +1799,7 @@
     "notes": "Large Barcelona delivery hub. Tier and TC band are estimates — not verified",
     "ats": {
       "type": "none",
-      "note": "No public endpoint found yet — covered through Adzuna and LinkedIn search"
+      "note": "Phenom (careers.nttdata.com) — no adapter yet; covered through Adzuna and LinkedIn search"
     }
   },
   {
@@ -1813,7 +1819,7 @@
     ],
     "ats": {
       "type": "none",
-      "note": "No public endpoint found yet — covered through Adzuna and LinkedIn search"
+      "note": "No public endpoint found — sdg.teamtailor.com is Social Discovery Group, a different company. Covered through Adzuna and LinkedIn search"
     }
   },
   {

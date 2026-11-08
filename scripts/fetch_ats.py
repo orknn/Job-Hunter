@@ -557,7 +557,44 @@ def fetch_workable(cfg, **_):
     ]
 
 
+_PERSONIO_POSITION = re.compile(r"<position>(.*?)</position>", re.S)
+
+
+def fetch_personio(cfg, **_):
+    """Personio public XML feed (<company>.jobs.personio.de/xml): every open
+    position with office and full description sections."""
+    company = cfg["company"]
+    try:
+        r = requests.get(f"https://{company}.jobs.personio.de/xml", headers=HEADERS, timeout=TIMEOUT)
+        if r.status_code != 200:
+            return None
+    except requests.exceptions.RequestException:
+        return None
+
+    def tag(chunk, name):
+        m = re.search(rf"<{name}>(?:\s*<!\[CDATA\[)?(.*?)(?:\]\]>\s*)?</{name}>", chunk, re.S)
+        return m.group(1).strip() if m else ""
+
+    # The feed declares UTF-8 in its XML prolog but not in the HTTP header, so
+    # requests falls back to Latin-1 and an en dash comes out as "â".
+    text = r.content.decode("utf-8", errors="replace")
+    out = []
+    for pos in _PERSONIO_POSITION.findall(text):
+        offices = [tag(pos, "office")] + re.findall(r"<additionalOffice>(.*?)</additionalOffice>", pos)
+        description = " ".join(_strip_tags(v) for v in re.findall(
+            r"<value>\s*<!\[CDATA\[(.*?)\]\]>\s*</value>", pos, re.S))
+        out.append({
+            "title": html.unescape(tag(pos, "name")),
+            "location": " / ".join(o for o in offices if o),
+            "url": f"https://{company}.jobs.personio.de/job/{tag(pos, 'id')}",
+            "description": description[:3000] or tag(pos, "name"),
+            "posted": tag(pos, "createdAt"),
+        })
+    return out
+
+
 ADAPTERS = {
+    "personio": fetch_personio,
     "workday": fetch_workday,
     "ashby": fetch_ashby,
     "greenhouse": fetch_greenhouse,

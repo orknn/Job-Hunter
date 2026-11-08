@@ -7,6 +7,7 @@ import os
 import re
 import sys
 import json
+import time
 import requests
 from datetime import datetime
 
@@ -65,6 +66,9 @@ def load_target_companies():
         return json.load(f)
 
 
+ADZUNA_RETRY_PAUSE = 5
+
+
 def search_adzuna(query, page=1):
     """Search Adzuna API for jobs matching query in Barcelona."""
     if not ADZUNA_APP_ID or not ADZUNA_APP_KEY:
@@ -84,6 +88,11 @@ def search_adzuna(query, page=1):
 
     try:
         response = requests.get(f"{BASE_URL}/{page}", params=params, timeout=30)
+        if response.status_code >= 500:
+            # Adzuna answered 503 to 10 of 16 queries on 8 Nov 2026; one
+            # retry after a pause rides out a short outage.
+            time.sleep(ADZUNA_RETRY_PAUSE)
+            response = requests.get(f"{BASE_URL}/{page}", params=params, timeout=30)
         response.raise_for_status()
         data = response.json()
         return data.get("results", []), None
@@ -314,6 +323,10 @@ def fetch_all_jobs():
         "matched_jobs": matched_list,
         "unmatched_jobs": unmatched_list,
         "dropped": dropped,
+        # Read by the digest's coverage note — a half-empty Adzuna run must
+        # not look like a quiet week.
+        "source_health": {"adzuna_failed_queries": failed_queries,
+                          "adzuna_total_queries": len(SEARCH_QUERIES)},
     }
 
     # Save to output file

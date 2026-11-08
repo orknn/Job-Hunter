@@ -198,6 +198,10 @@ def build_coverage_html(health):
     if failed:
         lines.append(f'<span style="color:#f59e0b;">⚠️ Career site unreachable:</span> '
                      f'{html.escape(", ".join(failed))}')
+    adzuna_failed = health.get("adzuna_failed_queries") or []
+    if adzuna_failed:
+        total = health.get("adzuna_total_queries") or len(adzuna_failed)
+        lines.append(f'<span style="color:#f59e0b;">⚠️ Adzuna search failed for {len(adzuna_failed)} of {total} queries</span>')
     if health.get("linkedin_unavailable"):
         lines.append('<span style="color:#f59e0b;">⚠️ LinkedIn search unavailable this run</span>')
     unconfigured = health.get("ats_unconfigured") or []

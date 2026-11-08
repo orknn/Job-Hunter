@@ -159,6 +159,21 @@ class AdapterTests(unittest.TestCase):
             "url": "https://jobs.jobvite.com/affinitypetcare/job/oSDszfwg",
             "description": "Digital Channels Business Partner", "posted": ""}])
 
+    def test_personio_feed_is_parsed_as_utf8(self):
+        feed = ('<?xml version="1.0" encoding="UTF-8"?><workzag-jobs><position><id>2539117</id>'
+                '<office>Barcelona</office><additionalOffice>Madrid</additionalOffice>'
+                '<name>Head of Finance – Iberia</name><createdAt>2026-11-01</createdAt>'
+                '<jobDescriptions><jobDescription><name>Mission</name><value><![CDATA[<p>Own the P&amp;L.</p>]]>'
+                '</value></jobDescription></jobDescriptions></position></workzag-jobs>')
+        r = self.response(text=feed.encode("utf-8").decode("latin-1"))  # what requests would guess
+        r.content = feed.encode("utf-8")
+        with patch.object(fetch_ats.requests, "get", return_value=r):
+            jobs = fetch_ats.fetch_personio({"company": "ailylabs"})
+        self.assertEqual(jobs[0]["title"], "Head of Finance – Iberia")
+        self.assertEqual(jobs[0]["location"], "Barcelona / Madrid")
+        self.assertEqual(jobs[0]["url"], "https://ailylabs.jobs.personio.de/job/2539117")
+        self.assertEqual(jobs[0]["description"], "Own the P&L.")
+
     def test_a_failed_endpoint_gets_one_retry(self):
         calls = []
 
@@ -180,7 +195,9 @@ class CoverageNoteTests(unittest.TestCase):
     def test_failed_sources_are_named_in_the_mail(self):
         note = generate_email.build_coverage_html({
             "ats_failed": ["Puig"], "ats_unconfigured": ["Glovo", "Mango"],
-            "linkedin_unavailable": "429"})
+            "linkedin_unavailable": "429",
+            "adzuna_failed_queries": ["CFO", "VP Finance"], "adzuna_total_queries": 16})
+        self.assertIn("Adzuna search failed for 2 of 16 queries", note)
         self.assertIn("Puig", note)
         self.assertIn("LinkedIn", note)
         self.assertIn("2 target companies", note)
