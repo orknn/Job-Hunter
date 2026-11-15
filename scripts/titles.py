@@ -103,3 +103,11 @@ def title_gate(title):
 def title_lane(title):
     """'target' for Director/Head/VP/CFO titles, 'step_down' for the rest that pass."""
     return "target" if _TOP_RE.search(title or "") else "step_down"
+
+
+# How much of an ad's text is kept and shown to the scorer. Requirement lists
+# sit at the END of most ads, after the company pitch and the duties; at the
+# old 2000-3000 cut 19 of 25 postings (14 Nov 2026) arrived truncated, so the
+# requirement comparison was reading half an ad. At 6000, 13 of 19 were still
+# cut; 12000 is ~3k tokens an ad, a few cents a week.
+DESCRIPTION_CAP = 12000

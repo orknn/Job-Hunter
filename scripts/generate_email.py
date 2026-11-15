@@ -31,31 +31,72 @@ def load_gap_report():
         return json.load(f)
 
 
+def load_fit_notes():
+    """Per-job strengths and gaps from score_jobs.py — a private file, absent
+    when the run had no skill profile."""
+    data_path = os.path.join(os.path.dirname(__file__), "..", "data", "fit_notes.json")
+    if not os.path.exists(data_path):
+        return {}
+    with open(data_path, "r", encoding="utf-8") as f:
+        notes = json.load(f)
+    return notes if isinstance(notes, dict) else {}
+
+
 def build_gap_report_html(report):
-    """Build the weekly positioning-gap section, if a report exists."""
-    if not report or not report.get("weak_dimensions"):
+    """The development-focus block at the top: one paragraph, then the counts
+    it was written from so the prose can be checked against them."""
+    if not report or not report.get("top_gaps"):
         return ""
 
+    compared = report.get("jobs_compared", 0)
     rows = ""
-    for dim in report["weak_dimensions"]:
+    for gap in report["top_gaps"]:
+        must = gap.get("must_count", 0)
+        must_note = f" · must-have in {must}" if must else ""
+        examples = ", ".join(html.escape(e) for e in gap.get("examples", [])[:3])
         rows += f"""
-        <div style="padding:12px 0;border-bottom:1px solid #2d2d44;">
-          <div style="display:flex;justify-content:space-between;align-items:baseline;">
-            <span style="color:#e2e8f0;font-weight:700;font-size:14px;">{dim.get('dimension', '')}</span>
-            <span style="color:#64748b;font-size:11px;">{dim.get('frequency', 0)}x this week</span>
-          </div>
-          <div style="color:#94a3b8;font-size:12px;margin-top:4px;">{dim.get('insight', '')}</div>
-          <div style="color:#a78bfa;font-size:12px;margin-top:6px;">→ {dim.get('action', '')}</div>
+        <div style="padding:8px 0;border-top:1px solid #2d2d44;">
+          <span style="color:#e2e8f0;font-weight:700;font-size:13px;">{html.escape(gap.get('name', ''))}</span>
+          <span style="color:#f87171;font-size:12px;font-weight:600;"> {gap.get('count', 0)} of {compared} ads{must_note}</span>
+          <div style="color:#64748b;font-size:11px;margin-top:2px;">{examples}</div>
         </div>
         """
 
+    paragraph = html.escape(report.get("paragraph", ""))
+    paragraph_html = (f'<div style="color:#cbd5e1;font-size:13px;line-height:1.6;margin-bottom:12px;">{paragraph}</div>'
+                      if paragraph else "")
     return f"""
     <div style="background:#1a1a2e;border:1px solid #2d2d44;border-left:4px solid #a78bfa;border-radius:12px;padding:20px;margin-bottom:24px;">
-      <div style="font-size:15px;font-weight:700;color:#e2e8f0;margin-bottom:4px;">🧭 This Week's Positioning Gaps</div>
-      <div style="color:#94a3b8;font-size:13px;margin-bottom:12px;">{report.get('summary', '')}</div>
+      <div style="font-size:15px;font-weight:700;color:#e2e8f0;margin-bottom:8px;">🧭 What to develop — from this week's ads</div>
+      {paragraph_html}
       {rows}
+      <div style="color:#475569;font-size:11px;margin-top:8px;">Counted over the {compared} of {report.get('jobs_total', compared)} ads whose text listed concrete requirements.</div>
     </div>
     """
+
+
+def build_fit_html(fit):
+    """The + / − lines on a card: what the ad asks for that the candidate has,
+    and what it asks for that he does not."""
+    if not fit:
+        return ""
+    if not fit.get("requirements_visible"):
+        return ('<div style="color:#64748b;font-size:12px;margin-bottom:12px;">'
+                '± Requirements not listed in the ad text we could fetch</div>')
+
+    def line(sign, color, items):
+        if not items:
+            return ""
+        return (f'<div style="color:{color};font-size:12px;line-height:1.5;">'
+                f'<b>{sign}</b> {" · ".join(items)}</div>')
+
+    plus = [html.escape(s) for s in fit.get("strengths", [])]
+    minus = [html.escape(g.get("label", "")) + (" <b>(must)</b>" if g.get("need") == "must" else "")
+             for g in fit.get("gaps", [])]
+    body = line("+", "#10b981", plus) + line("−", "#f87171", minus)
+    if not minus:
+        body += '<div style="color:#64748b;font-size:12px;">− no gap against the listed requirements</div>'
+    return f'<div style="margin-bottom:12px;">{body}</div>'
 
 
 def get_score_color(score):
@@ -279,6 +320,8 @@ def build_job_card(job):
         {fit_summary}
       </div>
 
+      {build_fit_html(job.get("fit"))}
+
       <div style="margin-bottom:12px;">{dim_html}</div>
 
       <a href="{url}" style="display:inline-block;background:{score_color};color:#000;text-decoration:none;padding:8px 20px;border-radius:8px;font-weight:700;font-size:13px;">
@@ -292,6 +335,9 @@ def generate_email():
     """Generate the full HTML email."""
     data = load_scored_jobs()
     jobs = data.get("scored_jobs", [])
+    fit_notes = load_fit_notes()
+    for job in jobs:
+        job["fit"] = fit_notes.get(str(job.get("id")))
     score_date = data.get("score_date", datetime.utcnow().isoformat())
     gap_report_html = build_gap_report_html(load_gap_report())
 

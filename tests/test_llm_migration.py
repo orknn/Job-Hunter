@@ -123,12 +123,13 @@ class ScoringCallTests(unittest.TestCase):
             captured["user"] = user
             return []
 
-        long_job = [dict(self.JOBS[0], description="y" * 5000)]
+        long_job = [dict(self.JOBS[0], description="y" * (score_jobs.DESCRIPTION_CAP + 4000))]
         with patch.object(score_jobs.llm, "call_json", side_effect=fake):
             score_jobs.score_batch(long_job)
 
         sent = json.loads(captured["user"].split("## Jobs to Evaluate")[1].strip())
-        self.assertEqual(len(sent[0]["description"]), 3000)
+        self.assertEqual(len(sent[0]["description"]), score_jobs.DESCRIPTION_CAP)
+        self.assertGreaterEqual(score_jobs.DESCRIPTION_CAP, 3000)
 
 
 class NoAnthropicLeftTests(unittest.TestCase):

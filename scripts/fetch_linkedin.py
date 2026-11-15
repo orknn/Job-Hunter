@@ -31,7 +31,7 @@ import requests
 
 sys.path.insert(0, os.path.dirname(__file__))
 from fetch_jobs import classify_language_fit, load_target_companies, match_company  # noqa: E402
-from titles import is_finance_title, title_gate  # noqa: E402
+from titles import DESCRIPTION_CAP, is_finance_title, title_gate  # noqa: E402
 
 SEARCH_URL = "https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search"
 DETAIL_URL = "https://www.linkedin.com/jobs-guest/jobs/api/jobPosting"
@@ -272,7 +272,7 @@ def run():
             "title": card["title"],
             "company": card["company"] or "Confidential",
             "location": card["location"],
-            "description": description[:3000],
+            "description": description[:DESCRIPTION_CAP],
             "salary_min": None,
             "salary_max": None,
             "url": f"https://www.linkedin.com/jobs/view/{card['id']}",

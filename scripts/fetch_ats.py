@@ -22,7 +22,7 @@ from datetime import datetime
 
 sys.path.insert(0, os.path.dirname(__file__))
 from fetch_jobs import classify_language_fit  # noqa: E402
-from titles import is_finance_title, title_gate  # noqa: E402
+from titles import DESCRIPTION_CAP, is_finance_title, title_gate  # noqa: E402
 
 HEADERS = {"User-Agent": "Mozilla/5.0 (Job-Hunter weekly digest; personal use)"}
 TIMEOUT = 20
@@ -141,7 +141,7 @@ def fetch_greenhouse(cfg, **_):
                 "title": j.get("title", ""),
                 "location": (j.get("location") or {}).get("name", ""),
                 "url": j.get("absolute_url", ""),
-                "description": (j.get("content") or "")[:2000],
+                "description": (j.get("content") or "")[:DESCRIPTION_CAP],
                 "posted": j.get("updated_at", ""),
             }
             for j in jobs
@@ -162,7 +162,7 @@ def fetch_lever(cfg, **_):
                 "title": j.get("text", ""),
                 "location": (j.get("categories") or {}).get("location", "") or "",
                 "url": j.get("hostedUrl", ""),
-                "description": (j.get("descriptionPlain") or "")[:2000],
+                "description": (j.get("descriptionPlain") or "")[:DESCRIPTION_CAP],
                 "posted": "",
             }
             for j in r.json()
@@ -211,7 +211,7 @@ def fetch_amazon(cfg, **_):
                 "title": j.get("title", ""),
                 "location": j.get("normalized_location", "") or j.get("location", ""),
                 "url": "https://www.amazon.jobs" + j.get("job_path", ""),
-                "description": (j.get("description_short") or j.get("description") or "")[:2000],
+                "description": (j.get("description_short") or j.get("description") or "")[:DESCRIPTION_CAP],
                 "posted": j.get("posted_date", ""),
             }
             for j in r.json().get("jobs", [])
@@ -310,7 +310,7 @@ def fetch_ashby(cfg, **_):
                 "location": " / ".join(filter(None, [j.get("location", "")] + [
                     x.get("location", "") for x in j.get("secondaryLocations") or []])),
                 "url": j.get("jobUrl", "") or j.get("applyUrl", ""),
-                "description": (j.get("descriptionPlain") or j.get("title") or "")[:2000],
+                "description": (j.get("descriptionPlain") or j.get("title") or "")[:DESCRIPTION_CAP],
                 "posted": j.get("publishedAt", ""),
             }
             for j in r.json().get("jobs", [])
@@ -446,7 +446,7 @@ def fetch_jibe(cfg, **_):
             "location": d.get("full_location") or ", ".join(
                 filter(None, [d.get("city", ""), d.get("country", "")])),
             "url": f"https://{host}/jobs/{d.get('slug', '')}",
-            "description": _strip_tags(d.get("description", ""))[:2000],
+            "description": _strip_tags(d.get("description", ""))[:DESCRIPTION_CAP],
             "posted": d.get("create_date", "") or d.get("posted_date", ""),
         })
     return out
@@ -521,7 +521,7 @@ def fetch_rss(cfg, **_):
             "title": title,
             "location": loc,
             "url": link,
-            "description": tag(item, "description")[:2000] or title,
+            "description": tag(item, "description")[:DESCRIPTION_CAP] or title,
             "posted": tag(item, "pubDate"),
         })
     return out
@@ -587,7 +587,7 @@ def fetch_personio(cfg, **_):
             "title": html.unescape(tag(pos, "name")),
             "location": " / ".join(o for o in offices if o),
             "url": f"https://{company}.jobs.personio.de/job/{tag(pos, 'id')}",
-            "description": description[:3000] or tag(pos, "name"),
+            "description": description[:DESCRIPTION_CAP] or tag(pos, "name"),
             "posted": tag(pos, "createdAt"),
         })
     return out
@@ -675,7 +675,7 @@ def fetch_detail_description(url, ats_type):
             return ""
         if ats_type == "jobvite":
             i = r.text.find('class="jv-job-detail-description"')
-            return _strip_tags(r.text[i:i + 40000])[:3000] if i >= 0 else ""
+            return _strip_tags(r.text[i:i + 40000])[:DESCRIPTION_CAP] if i >= 0 else ""
         m = _CSB_DESC.search(r.text)
         if m:
             return _strip_tags(m.group(1))
@@ -774,7 +774,7 @@ def fetch_company(company, dropped=None):
             enriched += 1
             detail = fetch_detail_description(r["url"], ats["type"])
             if detail:
-                r["description"] = detail[:3000]
+                r["description"] = detail[:DESCRIPTION_CAP]
             time.sleep(0.4)
         entry = {
             "id": f"ats-{company['name'][:12].replace(' ','')}-{abs(hash(r['url'])) % 10**8}",

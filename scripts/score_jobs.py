@@ -9,6 +9,7 @@ import sys
 import json
 
 import llm
+from titles import DESCRIPTION_CAP
 from dedupe import dedupe_jobs, is_recruiter
 from fetch_jobs import load_target_companies
 
@@ -37,7 +38,7 @@ SCORING_PROMPT = """You are an expert career advisor evaluating job listings for
 - **Visa:** Requires HQP sponsorship (Spain)
 - **Timeline:** Moving within 6 months
 - **Side projects:** nocashflow.net (crypto/macro newsletter)
-
+{skills_block}
 ## 10-Dimension Scoring Rubric (A=best, D=lowest)
 
 1. **Total Comp** — A: €180k+, B: €140-180k, C: €110-140k, D: <€110k
@@ -80,13 +81,122 @@ For each job below, return a JSON object with:
 - "fit_summary": 2-3 sentence explanation of why this job fits or doesn't fit Orkun
 - "hqp_risk": "LOW", "MEDIUM", or "HIGH" (risk of NOT getting HQP sponsorship)
 - "apply_priority": "APPLY NOW", "WATCH", or "SKIP"
-
+{fit_task}
 Return a JSON object of the form {"scores": [ ...one entry per job... ]}.
 No markdown, no explanation outside JSON.
 
 ## Jobs to Evaluate
 {jobs_json}
 """
+
+
+# ── Requirement fit: what the ad asks for vs. what the candidate has ──
+# The skill profile never lives in this (public) repo. CI passes it in the
+# CANDIDATE_PROFILE secret; locally it is the git-ignored file below. Without
+# one the digest still runs, just without the +/− lines.
+PROFILE_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "candidate_profile.md")
+FIT_NOTES_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "fit_notes.json")
+
+# Fixed vocabulary so gaps can be counted across ads: free-text labels differ
+# on every posting ("S/4HANA", "SAP FI/CO", "SAP experience") and would tally
+# as three gaps of one each.
+GAP_TAGS = {
+    "python_automation": "Python / automation",
+    "sap": "SAP depth",
+    "other_erp": "Other ERP (Oracle, NetSuite, D365)",
+    "planning_tools": "Planning tools (Anaplan, Adaptive, OneStream)",
+    "certification": "Certification (CPA / ACCA / CFA / CMA)",
+    "audit_big4": "Audit / Big 4 background",
+    "consolidation_ifrs_statutory": "Consolidation / IFRS / statutory",
+    "m_and_a": "M&A / due diligence",
+    "treasury_tax": "Treasury / tax",
+    "investor_relations_fundraising": "Investor relations / fundraising",
+    "transformation_lead": "Leading a finance transformation",
+    "people_leadership": "Leading a (larger) team now",
+    "board_exposure": "Board / C-level exposure",
+    "industry_experience": "Specific industry experience",
+    "spanish": "Spanish",
+    "other_language": "Another language",
+    "other": "Other",
+}
+
+SKILLS_BLOCK = """
+## Candidate Skill Profile
+HAS = solid, PARTIAL = some exposure but short of what a senior ad means, LACKS = does not have.
+{profile}
+"""
+
+FIT_TASK = """- "requirements_visible": true when the description actually lists requirements or responsibilities concrete enough to compare with the skill profile; false when it is a short teaser or says nothing checkable
+- "strengths": up to 3 short phrases (max 6 words each) — things THIS AD explicitly asks for that the skill profile marks HAS. Most decisive first.
+- "gaps": up to 3 objects {"tag": ..., "label": ..., "need": ...} — things THIS AD explicitly asks for that the profile marks LACKS or PARTIAL, or does not cover at all. Most decisive first.
+  - "label": max 6 words, concrete, in the ad's own terms (e.g. "S/4HANA implementation lead", "ACCA or CPA", "SaaS metrics experience")
+  - "need": "must" ONLY when the ad states it as a required qualification (its requirements / qualifications section, or wording like "required", "must have", "essential", "X+ years of ..."). A duty the role performs, or anything "preferred", "a plus", "ideally", "nice to have", is "nice".
+  - A gap must be something the candidate could not credibly claim today. A duty that is simply a larger version of what the profile already HAS (forecasting, reporting, leading a team) is not a gap.
+  - "tag": exactly one of: __GAP_TAGS__
+- Rules for strengths and gaps: use ONLY what the description text says — never what such roles "usually" need, never the title or the company. Ignore generic soft skills any senior finance person has (stakeholder management, analytical mindset, communication). Do not repeat the visa situation here. If requirements_visible is false, return empty lists for both.
+- strengths and gaps are information for the candidate only: they must NOT move overall_score, the dimension scores or apply_priority, which follow the rubric and special rules above exactly as before.
+""".replace("__GAP_TAGS__", ", ".join(f'"{t}"' for t in GAP_TAGS))
+
+
+def load_candidate_profile():
+    """The private skill profile, or "" when none is configured."""
+    profile = os.environ.get("CANDIDATE_PROFILE", "").strip()
+    if not profile and os.path.exists(PROFILE_PATH):
+        with open(PROFILE_PATH, "r", encoding="utf-8") as f:
+            profile = f.read().strip()
+    return profile
+
+
+def build_prompt(jobs_json, profile):
+    """Fill the rubric prompt; the fit fields are only asked for with a profile."""
+    return (SCORING_PROMPT
+            .replace("{skills_block}", SKILLS_BLOCK.replace("{profile}", profile) if profile else "")
+            .replace("{fit_task}", FIT_TASK if profile else "")
+            .replace("{jobs_json}", jobs_json))
+
+
+def _short(text, limit=60):
+    text = " ".join(str(text or "").split())
+    return text if len(text) <= limit else text[:limit - 1].rstrip() + "…"
+
+
+# An ad text shorter than this is a search-result teaser (Adzuna cuts at ~500
+# chars). The model still finds "strengths" in the opening pitch and no gaps,
+# which would render as "no gap" on an ad nobody could read the requirements of.
+MIN_CHARS_FOR_FIT = 800
+
+
+def extract_fit(score, description_chars=None):
+    """Pop the fit fields off a score and return them cleaned.
+
+    Popped, not copied: scored_jobs.json is uploaded as a workflow artifact,
+    which on a public repo anyone signed in can download. What the candidate
+    lacks goes to fit_notes.json instead, which is never archived.
+    """
+    visible = score.pop("requirements_visible", None)
+    strengths = score.pop("strengths", None)
+    gaps = score.pop("gaps", None)
+    if visible is None and strengths is None and gaps is None:
+        return None  # scored without a profile
+
+    clean_strengths = [_short(s) for s in (strengths or []) if isinstance(s, str) and s.strip()][:3]
+    clean_gaps = []
+    for gap in gaps or []:
+        if not isinstance(gap, dict) or not str(gap.get("label") or "").strip():
+            continue
+        tag = gap.get("tag")
+        clean_gaps.append({
+            "tag": tag if tag in GAP_TAGS else "other",
+            "label": _short(gap["label"]),
+            # An unlabelled need is not promoted to a hard requirement.
+            "need": "must" if gap.get("need") == "must" else "nice",
+        })
+    clean_gaps = clean_gaps[:3]
+
+    visible = bool(visible) or bool(clean_strengths or clean_gaps)
+    if description_chars is not None and description_chars < MIN_CHARS_FOR_FIT:
+        visible, clean_strengths, clean_gaps = False, [], []
+    return {"requirements_visible": visible, "strengths": clean_strengths, "gaps": clean_gaps}
 
 
 def load_fetched_jobs():
@@ -100,7 +210,7 @@ def load_fetched_jobs():
         return json.load(f)
 
 
-def score_batch(jobs):
+def score_batch(jobs, profile=""):
     """Send a batch of jobs to the model for scoring."""
     jobs_summary = []
     for job in jobs:
@@ -109,10 +219,10 @@ def score_batch(jobs):
             "title": job["title"],
             "company": job["company"],
             "location": job["location"],
-            # 3000 chars, matching the ATS enrichment cap: experience lines sit
+            # The fetchers' own cap: experience and requirement lines sit
             # deep in the ad — a 2000 cut once hid Puig's "+4 years" at char
             # 2059 and the role scored B because the model never saw it
-            "description": job["description"][:3000],
+            "description": job["description"][:DESCRIPTION_CAP],
             "salary_min": job.get("salary_min"),
             "salary_max": job.get("salary_max"),
             "target_match": job.get("target_match"),
@@ -120,7 +230,7 @@ def score_batch(jobs):
         }
         jobs_summary.append(summary)
 
-    prompt = SCORING_PROMPT.replace("{jobs_json}", json.dumps(jobs_summary, indent=2, ensure_ascii=False))
+    prompt = build_prompt(json.dumps(jobs_summary, indent=2, ensure_ascii=False), profile)
 
     try:
         # JSON mode cannot return a bare array, so the prompt asks for a
@@ -129,7 +239,9 @@ def score_batch(jobs):
         results = llm.call_json(
             system=SCORING_SYSTEM_PROMPT,
             user=prompt,
-            max_tokens=4096,
+            # Ten postings with strengths and gaps run past the old 4096
+            # ceiling, and llm.call_json treats a cut-off answer as a failure.
+            max_tokens=8192,
             unwrap="scores",
         )
         if not isinstance(results, list):
@@ -250,7 +362,9 @@ def score_all_jobs():
             print(f"   · {j['title'][:60]} | {j['company']}")
         all_jobs = [j for j in all_jobs if not years_requirement_below_bar(j.get("description", ""))]
 
-    print(f"📊 Scoring {len(all_jobs)} jobs with {llm.MODEL}...")
+    profile = load_candidate_profile()
+    print(f"📊 Scoring {len(all_jobs)} jobs with {llm.MODEL}"
+          f" ({'with' if profile else 'WITHOUT'} skill profile)...")
 
     if not all_jobs:
         print("No jobs to score. Creating empty result.")
@@ -265,7 +379,7 @@ def score_all_jobs():
             batch = all_jobs[i:i + batch_size]
             total_batches += 1
             print(f"\n  Batch {i // batch_size + 1}: scoring {len(batch)} jobs...")
-            results = score_batch(batch)
+            results = score_batch(batch, profile)
             if results is None:
                 failed_batches += 1
                 continue
@@ -296,6 +410,7 @@ def score_all_jobs():
 
     # Merge scored data back with original job info
     enriched = []
+    fit_notes = {}
     dropped_unmatched = 0
     for score in relevant:
         job_id = str(score.get("job_id", ""))
@@ -324,6 +439,9 @@ def score_all_jobs():
         if years is not None and years < TARGET_YEARS:
             score["level"] = "STEP_DOWN"
         calibrate_priority(score)
+        fit = extract_fit(score, len(original.get("description") or ""))
+        if fit is not None:
+            fit_notes[job_id] = fit
 
         enriched.append({
             **original,
@@ -350,6 +468,10 @@ def score_all_jobs():
     output_path = os.path.join(os.path.dirname(__file__), "..", "data", "scored_jobs.json")
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(result, f, indent=2, ensure_ascii=False)
+
+    # Rewritten every run, so a run without a profile cannot reuse stale notes.
+    with open(FIT_NOTES_PATH, "w", encoding="utf-8") as f:
+        json.dump(fit_notes, f, indent=2, ensure_ascii=False)
 
     print(f"\n{'='*50}")
     print(f"✅ Scoring complete!")

@@ -19,3 +19,9 @@ __pycache__/
 *.py[cod]
 venv/
 .venv/
+
+# Candidate skill profile and the per-job fit notes. Private on purpose: this
+# repo is public and these describe what the candidate lacks. CI reads the
+# profile from the CANDIDATE_PROFILE secret instead.
+data/candidate_profile.md
+data/fit_notes.json

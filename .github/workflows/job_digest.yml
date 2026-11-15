@@ -51,12 +51,14 @@ jobs:
       - name: 🤖 Score jobs
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          # Private skill profile — kept out of this public repo on purpose.
+          CANDIDATE_PROFILE: ${{ secrets.CANDIDATE_PROFILE }}
         run: python scripts/score_jobs.py
 
       - name: 🆕 Mark what earlier digests already showed
         run: python scripts/track_seen.py
 
-      - name: 🧭 Analyze positioning gaps
+      - name: 🧭 Tally requirement gaps
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: python scripts/analyze_gaps.py
@@ -88,10 +90,11 @@ jobs:
         if: always()
         with:
           name: job-digest-${{ github.run_number }}
+          # Artifacts of a public repo are downloadable by anyone signed in.
+          # fit_notes.json, gap_report.json and the rendered email describe
+          # what the candidate lacks, so they are deliberately not archived.
           path: |
             data/fetched_jobs.json
             data/scored_jobs.json
-            data/gap_report.json
-            data/email_digest.html
           if-no-files-found: warn
           retention-days: 30

@@ -22,7 +22,7 @@ GitHub Actions (Every Saturday, scheduled 06:17 UTC)
 │
 ├── 3. TRACK — data/seen_jobs.json marks what earlier digests already showed
 │
-├── 4. ANALYZE GAPS — OpenAI (gpt-6.1-terra) → weekly positioning gap report
+├── 4. ANALYZE GAPS — tally of what the ads ask for that the candidate lacks → "what to develop" paragraph
 │
 ├── 5. GENERATE — dark-theme HTML email
 │   └── Tiers A → D, then the step-down lane, the filtered-out audit list,
@@ -90,7 +90,7 @@ Job Hunter/
 │   ├── dedupe.py                       # one card per role across sources; recruiter flag
 │   ├── score_jobs.py                   # rubric scorer (10 dimensions)
 │   ├── track_seen.py                   # remembers what earlier digests showed
-│   ├── analyze_gaps.py                 # Weekly positioning gap report (B/C tier near-misses)
+│   ├── analyze_gaps.py                 # Requirement-gap tally + development paragraph
 │   ├── generate_email.py               # Premium HTML email builder
 │   └── send_email.py                   # Gmail SMTP sender
 ├── data/
