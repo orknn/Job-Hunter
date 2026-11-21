@@ -22,6 +22,7 @@ against this provider already:
 
 import json
 import os
+from datetime import date
 
 from openai import OpenAI
 
@@ -30,7 +31,21 @@ from openai import OpenAI
 # price, still around a euro a month at this volume. Named once, here, so a model
 # retirement is a one-line change instead of a hunt — the last one took the
 # digest down until someone noticed (commit ccbcc2a).
-MODEL = "gpt-6.1-terra"
+BASE_MODEL = "gpt-6.1-terra"
+
+# Time-boxed switch, 21 Nov 2026: OpenAI gave this account 50% off gpt-6.2-sol
+# until 15 Jan 2027 10:00 PT. At half price sol bills the same per token as
+# terra ($1/$5 per 1M), so the digest runs on sol until then and falls back to
+# terra on its own — nobody has to remember to switch it back.
+PROMO_MODEL = "gpt-6.2-sol"
+PROMO_ENDS = date(2027, 1, 15)
+
+
+def model_for(today=None):
+    return PROMO_MODEL if (today or date.today()) < PROMO_ENDS else BASE_MODEL
+
+
+MODEL = model_for()
 
 SEED = 7
 

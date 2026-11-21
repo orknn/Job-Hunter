@@ -12,7 +12,7 @@ GitHub Actions (Every Saturday, scheduled 06:17 UTC)
 │   ├── Career sites of the target companies (Workday, Greenhouse, Ashby, …)
 │   └── LinkedIn public guest search → companies nobody thought to list
 │
-├── 2. SCORE — OpenAI (gpt-6.1-terra) → 10-dimension rubric scoring (A-D)
+├── 2. SCORE — OpenAI (gpt-6.2-sol until 15 Jan 2027, then gpt-6.1-terra) → 10-dimension rubric scoring (A-D)
 │   ├── Cross-source duplicates merged first (scripts/dedupe.py)
 │   ├── APPLY NOW kept for grade A, or grade B at target level without high visa risk
 │   ├── Agency-placed ads flagged "via recruiter"
@@ -72,7 +72,7 @@ Tick **dry_run** to build the digest without sending mail or touching `seen_jobs
 | Service | Monthly Cost |
 |---|---|
 | Adzuna API | **€0** (free tier: 2,500 calls/month) |
-| OpenAI (gpt-6.1-terra) | **~€1** (4 runs × ~50 jobs, scoring + gap analysis) |
+| OpenAI (gpt-6.2-sol at 50% off until 15 Jan 2027, then gpt-6.1-terra) | **~€1** (4 runs × ~50 jobs, scoring + gap analysis) |
 | Gmail SMTP | **€0** |
 | **Total** | **~€1/month** |
 
